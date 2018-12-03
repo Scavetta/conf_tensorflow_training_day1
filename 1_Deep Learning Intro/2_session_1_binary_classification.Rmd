@@ -1,0 +1,270 @@
+---
+title: "Introduction to Deep Learning"
+subtitle: "Classification -- Binary"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+```
+
+# Session 1 {.tabset .tabset-fade .tabset-pills}
+
+## Intro
+
+### Learning Goals
+
+Developing deep learning to two core questions in supervised learning: Classification and Regression. 
+
+The UCI Abalone data-set is a small and easy starting point since it can be used for predicting age as either a categorical or continuous variable, leading to the 
+
+### Outline
+
+- What is a tensor and why use it?
+- What is keras and what is its relationship to TensorFlow?
+- What is the deep in deep learning? ANNs and densely-connected networks.
+- The math of deep learning: Basics of matrix algebra, gradient descent, backpropagarion, chain rule.
+- The four stages of Deep learning.
+- Parameters and hyper-parameter.
+- Functions distinguishing classification and regression: loss and optimizer functions.
+
+### Functions in this session:
+
+Basic `keras` functions:
+
+| Function                   | Description                                       |
+|:---------------------------|:--------------------------------------------------| 
+| [`keras_model_sequential()`](https://www.rdocumentation.org/packages/keras/versions/2.2.0/topics/keras_model_sequential) | Keras Model composed of a linear stack of layers. |
+| `layer_dense()`	           | Add a densely-connected NN layer to an output.    |
+| `compile()`                | Configure a Keras model for training.             |
+| `fit()`                    | Train a Keras model.                              |
+
+
+In our last case study, Boston, we'll perform a regression to predict a continouous response variable from 13 predictor variables. To accommodate for this different analytical problem, we'll use:
+
+- A new normalization for the input data, z scores,
+- A new loss function, `mse`,
+- A new metric, `mae`, and
+- No final activation function (i.e. scalar).
+
+And since we have a really small data set we'll have:
+
+- A very simple network architecture, and
+- K-fold crossvalidation.
+
+## Install tensorflow 
+
+It's only necessary to run this once. 
+
+```{r install, eval = F}
+# for GPU
+# install_keras(tensorflow = "gpu")
+
+# or CPU:
+# install_keras() # for cpu
+```
+
+# Part 1: Data Preparation
+
+## Obtain data
+
+```{r}
+source("Boston_Z.R")
+```
+
+
+## Prepare the training data:
+
+The target, response variable is continuous. For this example, we'll pretend that it's binary.
+
+```{r strTargets}
+str(train_targets)
+str(test_targets)
+```
+
+```{r}
+
+# train_targets %>% 
+#   data.frame(x = .) %>% 
+#   ggplot(aes(x)) +
+#   geom_histogram(binwidth = 1)
+# 
+# hist(train_targets, breaks =  50, xlim = c(0,50))
+
+# range(train_targets)
+# range(test_targets)
+# 
+# sum(is.na(train_targets))
+# sum(is.na(test_targets))
+
+train_targets <- as.numeric(cut(train_targets, seq(0,50,25))) - 1
+test_targets <- as.numeric(cut(test_targets, seq(0,50,25))) - 1
+
+table(train_targets)
+table(test_targets)
+
+```
+
+
+```{r}
+# train_targets_vec <- to_categorical(train_targets)
+# test_targets_vec <- to_categorical(test_targets)
+```
+
+# Part 2: Define Network
+
+## Define the network
+
+Here we specify the final activation function. We're going to use the sigmoid activation function, which will return a single value. That matches the format of our labels.
+
+```{r architecture}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu") %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+```
+
+## View a summary of the network
+
+```{r summary}
+summary(network)
+```
+
+## Compile
+
+Instead of `categorical_crossentropy` we're going to use `binary_crossentropy` since we only have two possible classes.
+
+```{r compile}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "binary_crossentropy",
+  metrics = c("accuracy")
+)
+```
+
+# Part 3: Validate our approach
+
+Let's set apart 10,000 samples in our training data to use as a validation set:
+
+```{r}
+index <- 1:101 # for val
+
+val_data <- train_data[index,]
+train_data <- train_data[-index,]
+
+val_labels <- train_targets[index]
+train_labels = train_targets[-index]
+```
+
+Now let's train our network for 20 epochs:
+
+```{r echo=TRUE, results = "hide", warning = FALSE}
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 100,
+  batch_size = 2^4,
+  validation_data = list(val_data, val_labels)
+)
+```
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+
+The network begins to overfit after four epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
+
+```{r, echo=TRUE, results='hide'}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu") %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+  
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "binary_crossentropy",
+  metrics = c("accuracy")
+)
+
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 30,
+  batch_size = 2^4,
+  validation_data = list(val_data, val_labels)
+)
+```
+
+# Part 4: Check output
+
+## Metrics
+
+```{r metrics}
+metrics <- network %>% evaluate(test_data, test_targets)
+```
+
+```{r}
+metrics
+metrics$acc
+# Error rate: incorrect calling
+1 - metrics$acc
+```
+
+## Predictions
+
+```{r predictions}
+network %>% predict_classes(test_data[1:10,])
+```
+
+```{r allPredictions}
+predictions <- network %>% predict_classes(test_data)
+actual <- unlist(test_targets)
+totalmisses <- sum(predictions != actual)
+totalmisses
+```
+
+A total of `r totalmisses` mismatches occured.
+
+# Confusion Matrix
+
+```{r confusion, echo = F}
+data.frame(target = actual,
+           prediction = predictions) %>% 
+  filter(target != prediction) %>% 
+  group_by(target, prediction) %>%
+  count() %>%
+  filter(n > 1) %>% 
+  ggplot(aes(target, prediction, size = n)) +
+  geom_point(shape = 15, col = "#9F92C6") +
+  scale_x_continuous("Actual Target", breaks = 0:1, labels = c("Negative", "Positive")) +
+  scale_y_continuous("Prediction", breaks = 0:1, labels = c("Negative", "Positive")) +
+  scale_size_area(max_size = 10) +
+  coord_fixed() +
+  ggtitle(paste(totalmisses, "mismatches")) +
+  theme_classic() +
+  theme(rect = element_blank(),
+        axis.line = element_blank(),
+        axis.text = element_text(colour = "black"))
+```
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
