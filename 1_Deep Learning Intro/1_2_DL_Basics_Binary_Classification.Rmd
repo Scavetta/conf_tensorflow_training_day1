@@ -156,7 +156,7 @@ network %>% compile(
 
 # Part 3: Validate our approach
 
-Let's set apart 10,000 samples in our training data to use as a validation set:
+Let's set apart 101 samples in our training data to use as a validation set:
 
 ```{r}
 index <- 1:101 # for val

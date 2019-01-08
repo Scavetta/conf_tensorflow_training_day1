@@ -42,7 +42,7 @@ quiz(caption = "What do these terms refer to?",
            answer("Labeled instances", correct = TRUE),
            answer("Various flavors of classification and regression", correct = TRUE),
            allow_retry = T,
-           correct = "Great! By manually-curated we mean that  Supervised learning is not necessarily based on manually curat"
+           correct = "Great! By manually-curated we mean that supervised learning is not necessarily based on manually curat"
   ),
   question("Unsupervised Learning",
            answer("Dimension reduction", correct = TRUE),
@@ -537,3 +537,35 @@ quiz(
   )
 )
 ```
+
+## Your Turn
+
+In Sesison 1 We introduced the following functions:
+
+
+
+```{r S1_YT}
+
+quiz(caption = "Optimizer Functions",
+  question("What is the purpose of an optimizer function?",
+           answer("Informs us how to to update our parameters given the result of the loss function", correct = TRUE),
+           answer("It's a measure of accuracy"),
+           answer("It's the value we are trying to maximize in deep learning"),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  ),
+  question("Which are examples of optimizer functions?",
+           answer("SGD", correct = TRUE),
+           answer("ReLU"),
+           answer("RMSprop", correct = TRUE),
+           answer("Adagrad", correct = TRUE),
+           answer("Sigmoid"),
+           answer("Adadelta", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! We'll be using RMSprop."
+  )
+)
+
+```
+
+

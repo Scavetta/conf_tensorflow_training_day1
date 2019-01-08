@@ -1,0 +1,15 @@
+---
+title: "Binary Classification with Text: The IMDB Dataset"
+subtitle: "Scenario 2: Word Embeddings"
+author: "Rick Scavetta"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Initialize package
+# install.packages(keras)
+library(keras)
+library(tidyverse)
+```
