@@ -238,3 +238,28 @@ read.csv("../data/ClassicML.csv") %>%
         strip.background = element_rect(colour = NA, fill = "gray92"))
 
 ```
+
+
+## Examine your model
+
+Training a model simply means that we've defined the weights and bias matrices for each layer. We can save these values using:
+
+```{r eval = FALSE}
+network %>% 
+  save_model_hdf5("Boston_Regression_Model.h5")
+```
+
+If we want to open a saved model, we can use:
+
+```{r}
+model <- load_model_hdf5("Boston_Regression_Model.h5")
+```
+
+We have access to all values in the model:
+
+```{r}
+layer_outputs <- lapply(model$layers[1:8], function(layer) layer$output)
+activation_model <- keras_model(inputs = model$input, outputs = layer_outputs)
+```
+
+

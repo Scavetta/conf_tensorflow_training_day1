@@ -36,155 +36,335 @@ We'll use the following functions in our network:
 | Metric                         | `accuracy`            |
 | last-layer activation function | `sigmoid`             |
 
-## Part 1: Data Preparation
+# Part 1: Data Preparation
 
-### Obtain data
+## Obtain and prepare data
 
-We already saw how to obtain and transform the data, so I'm just going to call those functions here. For a classification, it would make more sense to name our `_targets` as `_labels` instead. But we'll just use the same names as before.
+We already examined the data in the previous script. Here, we'll just prepare the data as before, for use with binary crossentropy. If you're unfamiliar with what's happening here, please refer to the main script. 
 
 ```{r}
 source("Boston_Z.R")
 ```
 
-### Prepare the training data:
 
-The target, i.e. response, variable is continuous, but for this example, we'll pretend that it's binary so that we can see how to handle a binary classification.
+```{r data, warning = FALSE, echo = FALSE, context = "data", cache = TRUE}
+# Prepare the validation set
+index <- 1:101
 
-```{r strTargets}
-str(train_targets)
-str(test_targets)
+val_data <- train_data[index,]
+train_data <- train_data[-index,]
+
+val_targets <- train_targets[index]
+train_targets <- train_targets[-index]
 ```
 
-```{r}
-train_targets <- as.numeric(cut(train_targets, seq(0,50,25))) - 1
-table(train_targets)
-```
+# Variant 1: Larger or smaller layers
 
-```{r}
-test_targets <- as.numeric(cut(test_targets, seq(0,50,25))) - 1
-table(test_targets)
-```
+Here, we'll try the whole range from $2^2 = 4$ to $2^{6} = 64$ neurons in each of our hidden layers.
 
-## Part 2: Define Network
+To do this, we'll define a function, `define_model` that allows us to define and compile our model. It takes one argument: 
 
-### Define the network
+- `powerto = 4` - integer, the number of neurons as defined by two to the power of this value.
 
-Here we specify the final activation function. We're going to use the sigmoid activation function, which will return a single value. That matches the format of our labels.
-
-```{r architecture}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
-  layer_dense(units = 2^6, activation = "relu") %>% 
-  layer_dense(units = 1, activation = "sigmoid")
-```
-
-### View a summary of the network
-
-```{r summary}
-summary(network)
-```
-
-### Compile
-
-Instead of `categorical_crossentropy` we're going to use `binary_crossentropy` since we only have two possible classes.
-
-```{r compile}
+```{r define_model}
+# Generalise the model definitions
+# Defaults to parameters we used in original case study.
+define_model <- function(powerto = 4) {
+  
+  # cat("Defining model with ", 2^powerto, " neurons per hidden layer \n")
+  
+  # Define the model, using powerto arg for neuron number.
+  network <- keras_model_sequential() %>% 
+    layer_dense(units = 2^powerto, activation = "relu", input_shape = 13) %>% 
+    layer_dense(units = 2^powerto, activation = "relu") %>% 
+    layer_dense(units = 1)
+  
+  # Compile as before
 network %>% compile(
-  optimizer = "rmsprop",
-  loss = "binary_crossentropy",
-  metrics = "accuracy"
+  optimizer = "rmsprop", 
+  loss = "mse", 
+  metrics = "mae"
 )
+}
+
 ```
 
-## Part 3: Training our approach
+In addition to that, I'll define another function for training the model, `run_model`. It takes one argument:
 
-Now let's train our network for 20 epochs:
+- `epochs = 20` - integer, the numer of training epochs.
 
-```{r echo=TRUE, results = "hide", warning = FALSE}
-history <- network %>% fit(
-  train_data,
-  train_targets,
-  epochs = 100,
-  batch_size = 2^4
+I won't actually change the number of epochs here. it's provided for your convenience. I've set `verbose = FALSE` to avoid lots of print out.
+
+```{r run_model}
+run_model <- function(network, epochs = 20) {
+  
+  # cat("Training model ... \n")
+
+  # Train the model and return the history (or just the network)
+    network %>% fit(
+      train_data,
+      train_targets,
+      epochs = epochs,
+      batch_size = 512,
+      validation_data = list(val_data, val_targets),
+      verbose = FALSE
+    )
+}
+```
+
+The data is built into the function definitions, so calling my functions as below will provide the results we've seen previously.
+
+```{r ori_run}
+define_model() %>% 
+  run_model() -> history_original 
+
+# Plot history using default:
+history_original %>%
+  plot()
+
+# Prep data frame for use later on:
+history_original %>% 
+  data.frame() %>% 
+  mutate(nlayers = "2",
+         powerto = "16") -> history_original
+```
+
+I'm using `purrr::map()` to calculate all the models reiteratively. Since I want to plot all the values together, I convert the history to a data frame. At the end we'll have one large data frame with a `powerto` column that tells use how many neurons that model used.
+
+```{r var1_run, context = "data", cache = TRUE}
+# Define number of neurons
+powerto_input <- c(2:3,5:6)
+
+powerto_input %>% 
+  map(define_model) %>% 
+  map(run_model) %>% 
+  map_df(data.frame, .id = "powerto") %>% 
+  mutate(powerto = as.character(factor(powerto, labels = 2^powerto_input)),
+         nlayers = "2") -> history_powerto
+```
+
+From this, we can look at how the validation set accuracy and loss are affected. The line marked with red dots are the values we used in the original definition, above.
+
+```{r var1_plot, echo = F, message = FALSE}
+# merge with original and plot:
+history_powerto %>% 
+  full_join(history_original) %>%
+  arrange(as.numeric(powerto)) %>% 
+  ggplot(aes(epoch, value, col = as_factor(powerto), alpha = as_factor(powerto))) +
+  geom_line(alpha = 0.6) +
+  geom_point(col = "red") +
+  scale_alpha_manual("Number of neurons", values = c(rep(0,2),1,rep(0,2))) +
+  scale_color_brewer("Number of neurons", palette = "Blues") +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "2 hidden layers, changing number of neurons") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+Compared to the differently sized layers, our model reaches a fairly high and consistent accuracy. The larger models do not improve much on our original result.
+
+We can also count the number of parameters in each model:
+
+```{r nparams1, echo = FALSE}
+powerto_input2 <- 2:10
+
+powerto_input2 %>% 
+  map(define_model) -> justModels_powerto
+
+map(justModels_powerto, count_params) %>% 
+  map_df(data.frame, .id = "neurons") %>% 
+  mutate(neurons = 2^powerto_input2,
+         nlayers = 2) -> justModels_powerto 
+
+ggplot(justModels_powerto, aes(log2(neurons), .x..i..)) +
+  geom_line() +
+  geom_point(shape = 16, alpha = 0.6, size = 5) +
+  scale_x_continuous("Number of neurons", breaks = powerto_input2, labels = 2^powerto_input2) +
+  labs(y = "Number of parameters") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+# Variant 2: Changing the number of layers layers
+
+So now we have an idea that 16 neurons is appropriate. Do you think it would help to change the number of layers? I'm going to expand on the `build_model()` function I established earlier to allow us to define how many hidden layers.
+
+- `nlayers = 2` integer, the number of hidden layers. Minimum is 1.
+
+To make my syntax with `purrr::map()` easier, I'm going to put it in the first position.
+
+```{r define_model_revisited, context = "data", cache = TRUE}
+define_model <- function(nlayers = 2, powerto = 4) {
+
+  # cat("Defining model with ", 2^powerto, " neurons per ", nlayers," hidden layer(s) \n")
+  
+  # Establish model with single hidden, input, layer
+   network <- keras_model_sequential() %>% 
+    layer_dense(units = 2^powerto, activation = "relu", input_shape = 13)
+
+  # Add nlayers-1 number of additional layers
+  if (nlayers > 1) {
+  map(2:nlayers, ~ network %>%
+        layer_dense(units = 2^powerto, activation = "relu") 
   )
-```
-
-Let's display its loss and accuracy curves:
-
-```{r}
-plot(history)
-```
-
-The network begins to overfit after about 30 - 40 epochs. We'll discuss this in more detail in the next session.
-
-Let's train a new network from scratch for four epochs and then evaluate it on the test set.
-
-```{r, echo=TRUE, results='hide'}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
-  layer_dense(units = 2^6, activation = "relu") %>% 
-  layer_dense(units = 1, activation = "sigmoid")
+  }
+  
+  # Add final layer  
+  network %>% 
+    layer_dense(units = 1)
   
 network %>% compile(
-  optimizer = "rmsprop",
-  loss = "binary_crossentropy",
-  metrics = "accuracy"
+  optimizer = "rmsprop", 
+  loss = "mse", 
+  metrics = "mae"
 )
 
-history <- network %>% fit(
-  train_data,
-  train_targets,
-  epochs = 40,
-  batch_size = 2^4)
+}
+
 ```
 
-## Part 4: Check output
+Once again, I'll use `purrr::map()` to calculate all the models reiteratively. This time I'll have one large data frame and the `nlayers` column will correspond to how many layers that model contained.
 
-### Metrics
+```{r var2_run, context = "data", cache = TRUE}
+# Define number of neurons
+nlayers_input <- c(1,3:4)
 
-```{r metrics}
-metrics <- network %>% evaluate(test_data, test_targets)
+nlayers_input %>% 
+  map(define_model) %>%
+  map(run_model) %>% 
+  map_df(data.frame, .id = "nlayers") %>% 
+  mutate(nlayers = as.character(factor(nlayers, labels = nlayers_input)),
+         powerto = "16") -> history_nlayers
+
 ```
 
-```{r}
-metrics
-```
-
-The error rate, i.e. proportion of incorrect calling, is `r 1 - metrics$acc`.
-
-### Predictions
-
-```{r predictions}
-network %>% predict_classes(test_data[1:10,])
-```
-
-```{r allPredictions}
-predictions <- network %>% predict_classes(test_data)
-actual <- unlist(test_targets)
-totalmisses <- sum(predictions != actual)
-totalmisses
-```
-
-A total of `r totalmisses` mismatches occured.
-
-### Confusion Matrix
-
-```{r confusion, echo = F}
-data.frame(target = actual,
-           prediction = predictions) %>% 
-  filter(target != prediction) %>% 
-  group_by(target, prediction) %>%
-  count() %>%
-  filter(n > 1) %>% 
-  ggplot(aes(target, prediction, size = n)) +
-  geom_point(shape = 15, col = "#9F92C6") +
-  scale_x_continuous("Actual Target", breaks = 0:1, limits = 0:1, labels = c("Negative", "Positive")) +
-  scale_y_continuous("Prediction", breaks = 0:1, limits = 0:1, labels = c("Negative", "Positive")) +
-  scale_size_area(max_size = 10) +
-  coord_fixed() +
-  ggtitle(paste(totalmisses, "mismatches")) +
+```{r var2_plot, context = "data", cache = TRUE, echo = FALSE, message = FALSE}
+history_nlayers %>%
+  full_join(history_original) %>%
+  ggplot(aes(epoch, value, col = nlayers, alpha = nlayers)) +
+  geom_line(alpha = 0.6) +
+  geom_point(col = "red") +
+  scale_alpha_manual("Number of\nhidden layers", values = c(0,1,rep(0,6))) +
+  scale_color_brewer("Number of\nhidden layers", palette = "Blues") +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "16 neurons per layer, changing number of hidden layers") +
   theme_classic() +
-  theme(rect = element_blank(),
-        axis.line = element_blank(),
-        axis.text = element_text(colour = "black"))
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
 ```
+
+Our accuracy and loss are not improved upon by increasing the number of layers. Actually, more layers seems to preform worse!  
+
+Let's take a look at the number of parameters here:
+
+```{r nparams2, echo = FALSE, message = FALSE, cache = FALSE}
+nlayers_input2 <- 1:4
+
+nlayers_input2 %>% 
+  map(define_model) -> justModels_nlayer
+
+map(justModels_nlayer, count_params) %>%
+   map_df(data.frame, .id = "nlayers") %>% 
+   mutate(neurons = 16,
+          nlayers = nlayers_input2) -> justModels_nlayer
+
+justModels_nlayer[3:1] %>%
+  bind_rows(justModels_powerto) %>% 
+  filter(!duplicated(.)) %>% 
+  mutate(nlayers = as.factor(nlayers)) -> parameters_total
+
+g <- ggplot(parameters_total, aes(log2(neurons), .x..i.., col = nlayers)) +
+  geom_line() +
+  geom_point(shape = 16, alpha = 0.6, size = 5) +
+  scale_x_continuous("Number of neurons", breaks = powerto_input2, labels = 2^powerto_input2) +
+  labs(y = "Number of parameters", col = "Number of\nhidden layers") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+  
+# Zoom in on region of interest
+g
+# g + coord_cartesian(xlim = c(2.5,5.5), ylim = c(80000, 325000))
+  
+```
+
+# Variant 3: Combination of varying number of neurons and hidden layers
+
+Since we're here, let's look at changing both at the same time. We'll take a look at all possible combinations between `r min(nlayers_input)` and `r max(nlayers_input)` hidden layers and $2^{`r powerto_input[1]`}$ and $2^{`r powerto_input[length(powerto_input)]`}$ neurons per layer. Use the controls to view the results.
+
+```{r var3_run, context = "data", cache = TRUE, echo = FALSE}
+# Make a data frame of all possible combinations,
+# but remove those already calculated:
+  expand.grid(nlayers_input,
+              powerto_input) %>% 
+  rename(nlayers_input = Var1,
+         powerto_input = Var2) -> DF 
+
+# Calculate all possible combinations:
+map2(DF$nlayers_input, DF$powerto_input, ~ define_model(.x, .y)) %>% 
+  map(run_model) %>% 
+  map_df(data.frame, .id = "ID") %>% 
+  mutate(ID = factor(ID, labels = paste(DF$nlayers_input, 2^DF$powerto_input, sep = "_"))) %>% 
+  separate(ID, c("nlayers", "powerto")) -> history_rest
+
+
+```
+
+```{r data_merge, echo = FALSE, message = FALSE}
+# Join with the rest of the data
+# Remove duplicate entries before merging:
+history_rest %>% 
+  full_join(history_original) %>% 
+  full_join(history_nlayers) %>% 
+  full_join(history_powerto) %>%
+  mutate(nlayers = as.numeric(nlayers),
+         powerto = as.numeric(powerto))  %>% 
+  arrange(powerto) -> history #%>% 
+```
+
+```{r var3_plot_shiny_app, echo = FALSE}
+# Create a shinyUI for exploring the data:
+inputPanel(
+  sliderInput("layers", h4("Number of layers:"),
+              min = min(history$nlayers), max = max(history$nlayers),
+              value = 2, step = 1,
+              animate = animationOptions(interval = 1000, loop = TRUE)),
+  
+  radioButtons("metric", h4("Metric"),
+               choices = list("Loss" = "loss", "Accuracy" = "acc"),
+               selected = "acc"),
+  
+    radioButtons("data", h4("Data set"),
+               choices = list("Training" = "training", "Validation" = "validation"),
+               selected = "validation")
+)
+
+# Display plot output:
+plotOutput("distPlot")
+```
+
+```{r var3_plot_shiny_server, context = "server", echo = FALSE}
+
+# Render Plot output:
+output$distPlot <- renderPlot({
+  
+  history %>% 
+  filter(nlayers == input$layers, metric == input$metric, data == input$data) %>% 
+  ggplot(aes(epoch, value, col = as_factor(as.character(powerto)))) +
+  geom_line(alpha = 0.6) +
+  geom_point(data = history[history$nlayers == 2 & 
+                            history$powerto == 16 & 
+                            history$metric == input$metric & 
+                            history$data == input$data,], col = "red") +
+  scale_color_brewer("Number of neurons", palette = "Blues") +
+  labs(title = paste(input$layers, "hidden layers, changing number of neurons, -", input$data, "set.")) +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+  
+})
+```
+
+In some definitions, accuracy is increased by having more layers with fewer neurons or fewer layers with more neurons.

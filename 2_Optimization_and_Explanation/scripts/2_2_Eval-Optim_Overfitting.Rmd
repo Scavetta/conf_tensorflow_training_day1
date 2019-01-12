@@ -1,0 +1,420 @@
+---
+title: "Introduction to Deep Learning"
+subtitle: "Boston, regression, hold-out validation"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+plot_bkg <- "grey70"
+
+
+# see session 1 files for reading in data
+source("Boston_Z.R")
+```
+
+# Session 2 {.tabset .tabset-fade .tabset-pills}
+
+## Intro
+
+### Learning Goals
+
+Avoiding overfitting in your model.
+
+### Functions in this session:
+
+1. Reduce Capacity
+
+Use basic `keras` functions that we've seen already:
+
+| Function                  | Use                                                                             |
+|:--------------------------|:--------------------------------------------------------------------------------|
+| `layer_dense(units = xx)` | Change the number of nodes by adjusting the `units` argument in `layer_dense()` |
+| `layer_dense()`           | Reduce the number of hidden layers                                              |
+
+2. Add regularization:
+
+Inside a `layer_dense()` function, use the regularization argument: 
+
+| Argument | Use |
+|:---------|:-----|
+| `kernel_regularizer` | Specify the regularization method as an argument inside `layer_dense()` functions. |
+
+| Function | Use |
+|:---------|:-----|
+| `regularizer_l1(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
+| `regularizer_l2(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
+| `regularizer_l1_l2(0.001, 0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
+
+3. Add Dropout
+
+Add an additional dropout layer using:
+
+| function | Use |
+|:---------|:-----|
+| `layer_dropout(0.5)` | Add an additional dropout layer, setting the dropout rate between [0,1] |
+
+## Part 1: Data Preparation & model
+
+So far this is what we have developed for our regression model:
+
+Our original model was as such:
+
+```{r train_original, train, cache = TRUE, echo = TRUE, message = FALSE, warning = FALSE}
+# Original Network Definition
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile
+network %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+summary(network)
+
+# Fit
+network %>% fit(
+  train_data,
+  train_targets,
+  epochs = 60,
+  batch_size = 1,
+  verbose = FALSE) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "None",
+         Neurons = "64",
+         Layers = "2") -> history_original
+
+```
+
+
+
+## Method 1: Changing capacity
+
+```{r train_32}
+# Define
+network_32 <- keras_model_sequential() %>% 
+  layer_dense(units = 32, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 32, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile
+network_32 %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+# Fit & Merge
+network_32 %>% 
+  fit(
+    train_data,
+    train_targets,
+    epochs = 60,
+    batch_size = 1,
+    verbose = FALSE
+  ) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "None",
+         Neurons = "32",
+         Layers = "2") %>% 
+  full_join(history_original) -> history_capacity
+
+```
+
+```{r train_16}
+# Define
+network_16 <- keras_model_sequential() %>% 
+  layer_dense(units = 16, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 16, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile
+network_16 %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+# Fit
+network_16 %>% 
+  fit(
+    train_data,
+    train_targets,
+    epochs = 60,
+    batch_size = 1,
+    verbose = FALSE
+  ) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "None",
+         Neurons = "16",
+         Layers = "2") %>% 
+  full_join(history_capacity) -> history_capacity
+```
+
+```{r train_128}
+# Define
+network_128 <- keras_model_sequential() %>% 
+  layer_dense(units = 128, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 128, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile
+network_128 %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+# Fit
+network_128 %>% 
+  fit(
+    train_data,
+    train_targets,
+    epochs = 60,
+    batch_size = 1,
+    verbose = FALSE
+  ) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "None",
+         Neurons = "128",
+         Layers = "2") %>% 
+  full_join(history_capacity) -> history_capacity
+```
+
+
+Plot
+
+```{r plot_capacity, cache = TRUE}
+history_capacity %>% 
+  filter(metric == "loss") %>% 
+  mutate(Neurons = factor(Neurons, c("16", "32", "64", "128"))) %>% 
+  ggplot(aes(epoch, value, col = Neurons, alpha = Neurons)) +
+  geom_line(alpha = 1) +
+  geom_point(col = "red") +
+  scale_x_continuous(limits = c(1,60)) +
+  scale_y_continuous(limits = c(0,15)) +
+  scale_alpha_manual("Neurons", values = c(0,0,1,0)) +
+  scale_color_manual("Neurons", values = RColorBrewer::brewer.pal(9, "Blues")[c(3,5,7,9)]) +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "Boston Case Study, Capacity") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+## Medhod 2: Adding weight regularization
+
+L1 Regularization
+
+```{r L1_network}
+# L1 Regularization
+network_l1 <- keras_model_sequential() %>% 
+  layer_dense(units = 64, kernel_regularizer = regularizer_l1(0.001),
+              activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, kernel_regularizer = regularizer_l1(0.001),
+              activation = "relu") %>% 
+  layer_dense(units = 1)
+
+network_l1 %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+summary(network_l1)
+```
+
+L2 Regularization
+
+```{r L2_network}
+# L2 Regularization
+network_l2 <- keras_model_sequential() %>% 
+  layer_dense(units = 64, kernel_regularizer = regularizer_l2(0.001),
+              activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, kernel_regularizer = regularizer_l2(0.001),
+              activation = "relu") %>% 
+  layer_dense(units = 1)
+
+network_l2 %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+summary(network_l2)
+
+```
+
+L1 & L2 Regularization
+
+```{r L1_L2_regularization}
+# L1 & L2 Regularization
+network_l1_l2 <- keras_model_sequential() %>%
+  layer_dense(units = 64, kernel_regularizer = regularizer_l1_l2(0.001, 0.001),
+              activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, kernel_regularizer = regularizer_l1_l2(0.001, 0.001),
+              activation = "relu") %>% 
+  layer_dense(units = 1)
+
+network_l1_l2 %>%
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+)
+
+summary(network_l1_l2)
+```
+
+###  Train
+
+With L1 regularization
+
+```{r train_L1, train, cache = TRUE, echo = FALSE, message = FALSE, warning = FALSE}
+network_l1 %>% fit(
+  train_data,
+  train_targets,
+  epochs = 60,
+  batch_size = 1,
+  verbose = FALSE) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "L1",
+         Neurons = "64",
+         Layers = "2") %>% 
+  full_join(history_original) -> history_regularization
+```
+
+With L2 regularization
+
+```{r train_L2, train, cache = TRUE, echo = FALSE, message = FALSE, warning = FALSE}
+network_l2 %>% fit(
+  train_data,
+  train_targets,
+  epochs = 60,
+  batch_size = 1,
+  verbose = FALSE) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "L2",
+         Neurons = "64",
+         Layers = "2") %>% 
+  full_join(history_regularization) -> history_regularization
+```
+
+With L1 & L2 regularization
+
+```{r train_L1_L2, train, cache = TRUE, echo = FALSE, message = FALSE, warning = FALSE}
+network_l1_l2 %>% fit(
+  train_data,
+  train_targets,
+  epochs = 60,
+  batch_size = 1,
+  verbose = FALSE) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "None",
+         Regularization = "L1_L2",
+         Neurons = "64",
+         Layers = "2") %>% 
+  full_join(history_regularization) -> history_regularization
+```
+
+Plot
+
+```{r plot_regularization, cache = TRUE}
+history_regularization %>% 
+  filter(metric == "loss") %>% 
+  ggplot(aes(epoch, value, col = Regularization, alpha = Regularization)) +
+  geom_line(alpha = 1) +
+  geom_point(col = "red") +
+  scale_x_continuous(limits = c(1,60)) +
+  scale_y_continuous(limits = c(0,15)) +
+  scale_alpha_manual("Regularization", values = c(0,0,0,1)) +
+  scale_color_brewer("Regularization", palette = "Set1", direction = -1) +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "Boston Case Study, Regularization") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+## Medhod 3: Adding dropout
+
+```{r summary_dropout}
+# Dropout
+network_dropout <- keras_model_sequential() %>%
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dropout(rate = 0.2) %>%
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dropout(rate = 0.2) %>%
+  layer_dense(units = 1)
+
+network_dropout %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+)  
+  
+summary(network_dropout)
+```
+
+```{r}
+network_dropout %>% fit(
+  train_data,
+  train_targets,
+  epochs = 60,
+  batch_size = 1,
+  verbose = FALSE) %>% 
+  data.frame() %>% 
+  mutate(Dropout = "0.2",
+         Regularization = "None",
+         Neurons = "64",
+         Layers = "2") %>% 
+  full_join(history_original) %>% 
+  filter(Regularization == "None") -> history_dropout
+
+```
+
+The loss and accuracy curves:
+
+```{r plot_dropout, cache = TRUE}
+history_dropout %>% 
+  filter(metric == "loss") %>% 
+  ggplot(aes(epoch, value, col = Dropout, alpha = Dropout)) +
+  geom_line(alpha = 1) +
+  geom_point(col = "red") +
+  scale_alpha_manual("Dropout", values = 0:1) +
+  scale_color_brewer("Dropout", palette = "Set1", direction = -1) +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "Boston Case Study, with and without dropout") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
