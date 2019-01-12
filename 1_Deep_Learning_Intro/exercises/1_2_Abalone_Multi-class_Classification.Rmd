@@ -1,0 +1,275 @@
+---
+title: "Your Turn: Abalone -- Single-label, Multi-class Classification"
+author: "Rick Scavetta" 
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Initialize package
+library(keras)
+```
+
+## New functions in this section:
+
+In regression and binary classification, we didn't do anything to our labels (indeed, you should recall that logistic regression predicts a probabiliby [0,1])
+
+Here we're going to use:
+
+
+| Function | Description |
+|:---------|:-----|
+| `to_categorical()` | Vectorizes over an integer.  |
+
+
+In the compile step, we need to change the loss function to deal with this. Two loss functions: 
+
+| Loss Function | Description |
+|:---------|:-----|
+| `sparse_categorical_crossentropy` | Use when targets (i.e. labels) are encoded as integers |
+| `cateogircal_crossentropy` | Use when targes (i.e. labels) have been vectorized with `to_categorical()` |
+
+
+# Part 1: Data Preparation
+
+## Obtain data
+
+```{r data, warning = FALSE}
+
+data_dir <- "data/"
+
+train_data <- read_csv(paste0(data_fir, "abalone_data.csv"))
+train_labels <- read_csv(paste0(data_fir, "abalone_labels_cat.csv"))
+train_labels <- train_labels$Rings
+
+set.seed(136)
+index <- sample(1:nrow(train_data), 0.2*nrow(train_data))
+
+test_data <- train_data[index,]
+test_labels <- train_labels[index]
+
+train_data <- train_data[-index,]
+train_labels <- train_labels[-index]
+
+```
+
+## Examine data:
+
+Our predictor variables:
+
+```{r strDataPre}
+str(train_data)
+str(test_data)
+```
+
+## Prepare the data:
+
+The target, response variable:
+
+```{r strTargets}
+str(train_labels)
+```
+
+Convert z-scores:
+
+```{r zScores, cache = T}
+# parameters for Scaling:
+mean <- colMeans(train_data) # mean of each column
+std <- apply(train_data, 2, sd) # stdev of each column
+
+# Calculate feature-wise (within-variable) z-scores: (x - mean)/std
+train_data <- scale(train_data, center = mean, scale = std)
+test_data <- scale(test_data, center = mean, scale = std)
+```
+
+## Prepare labels:
+
+Here, we'll use _sparse categorical crossentropy_ which allows us to just use the original integer values.
+
+
+```{r strLabelsPre}
+str(train_labels)
+sort(unique(train_labels))
+```
+
+Some classes are very common, which we'll see play out in our confusion matrix below 
+
+```{r plotLabelsPre}
+# Note plyr not dplyr here. I'm just using a shortcut
+library(ggplot2)
+train_labels %>% 
+  plyr::count() %>%
+  ggplot(aes(x, freq)) +
+  geom_col()
+```
+
+The distribution of the test and training set should be roughly equivalent, so let's have a look. 
+
+```{r}
+data.frame(x = train_labels) %>% 
+  group_by(x) %>% 
+  summarise(train_freq = 100 * n()/length(train_data)) -> train_labels_df
+
+data.frame(x  = test_labels) %>% 
+  group_by(x) %>% 
+  summarise(train_freq = 100 * n()/length(test_data)) %>% 
+  inner_join(train_labels_df, by="x") %>% 
+  gather(key, value, -x) %>% 
+  ggplot(aes(x, value, fill = key)) +
+  geom_col(position = "dodge") +
+  scale_y_continuous("Percentage", limits = c(0,40), expand = c(0,0)) +
+  scale_x_continuous("Label", breaks = 0:45, expand = c(0,0)) +
+  scale_fill_manual("", labels = c("test","train"), values = c("#AEA5D0", "#54C8B7")) +
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8),
+        axis.line.x = element_blank(),
+        axis.text = element_text(colour = "black"))
+```
+
+# Part 2: Define Network
+
+## Define the network
+
+```{r architecture}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 4, activation = "softmax")
+
+```
+
+## View a summary of the network
+
+```{r summary}
+summary(network)
+```
+
+## Compile
+
+```{r compile}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "sparse_categorical_crossentropy",
+  metrics = c("accuracy")
+)
+```
+
+# Part 3: Validate our approach
+
+Let's set apart 25% of the samples in our training data to use as a validation set:
+
+```{r}
+set.seed(631)
+index <- sample(1:nrow(train_data), 0.25*nrow(train_data))
+
+val_data <- train_data[index,]
+train_data <- train_data[-index,]
+
+val_labels <- train_labels[index]
+train_labels = train_labels[-index]
+```
+
+Now let's train our network for 20 epochs:
+
+```{r echo=TRUE, results = "hide", warning = FALSE}
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 20,
+  batch_size = 64,
+  validation_data = list(val_data, val_labels)
+)
+```
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+The network begins to overfit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
+
+```{r, echo=TRUE, results='hide'}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 4, activation = "softmax")
+  
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "sparse_categorical_crossentropy",
+  metrics = c("accuracy")
+)
+
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 9,
+  batch_size = 64,
+  validation_data = list(val_data, val_labels)
+)
+```
+
+# Part 5: Check output
+
+Let's return to our original model using the vectorized data:
+
+## Metrics
+
+```{r metrics}
+metrics <- network %>% evaluate(test_data, test_labels)
+```
+
+```{r}
+metrics
+metrics$acc
+# Error rate: incorrect calling
+1 - metrics$acc
+```
+
+## Predictions
+
+```{r predictions}
+network %>% predict_classes(test_data[1:10,])
+```
+
+```{r allPredictions}
+predictions <- network %>% predict_classes(test_data)
+actual <- unlist(test_labels)
+totalmisses <- sum(predictions != actual)
+```
+
+# Confusion Matrix
+
+```{r confusion, echo = F}
+suppressPackageStartupMessages(library(tidyverse))
+# library(dplyr)
+data.frame(target = actual,
+           prediction = predictions) %>% 
+  filter(target != prediction) %>% 
+  group_by(target, prediction) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(perc = n/nrow(.)*100) %>% 
+  filter(n > 1) %>% 
+  ggplot(aes(target, prediction, size = n)) +
+  geom_point(shape = 15, col = "#9F92C6") +
+  scale_x_continuous("Actual Target", breaks = 0:45) +
+  scale_y_continuous("Prediction", breaks = 0:45) +
+  scale_size_area(breaks = c(2,5,10,15), max_size = 5) +
+  coord_fixed() +
+  ggtitle(paste(totalmisses, "mismatches")) +
+  theme_classic() +
+  theme(rect = element_blank(),
+        axis.line = element_blank(),
+        axis.text = element_text(colour = "black"))
+
+```
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+

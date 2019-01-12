@@ -1,0 +1,14 @@
+---
+title: "Session 1 Exercise: Instructions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(keras)
+```
+
+In this directory you'll find files derived from the abalone data set available at UCI.
+

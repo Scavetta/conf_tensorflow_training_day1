@@ -1,0 +1,17 @@
+---
+title: "Session 4 Exercise: Instructions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(keras)
+```
+
+In this session we saw how to develop RNNs (and specifically LSTMs) for text classification.
+
+## Identify scientfic discipline
+
+Your challenge in this exercise is to identify the scientific discipline from a collection of abstracts.

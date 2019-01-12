@@ -40,6 +40,17 @@
 
 - The UCI [Abalone](http://archive.ics.uci.edu/ml/datasets/Abalone) data-set, predict ring number as a categorical or continuous variable.
 
+***
+
+
+| Description | Markdown | HTML
+| ------------- | ------------- | ------------- |
+| 0.0: Classic ML | [R Markdown (Rmd)](/1_Deep_Learning_Intro/scripts/1_0_Classic_ML.Rmd) | [Notebook (HTML)](/1_Deep_Learning_Intro/scripts/1_0_Classic_ML.html) |
+| 1.1: DL Basics | [R Markdown (Rmd)](notebooks/3.4-classifying-movie-reviews.Rmd) | [Notebook (HTML)](https://jjallaire.github.io/deep-learning-with-r-notebooks/notebooks/3.4-classifying-movie-reviews.nb.html) |
+
+
+
+
 ### Session 2: Building better models: Evaluating and Optimizing Models
 
 #### Topics Covered:

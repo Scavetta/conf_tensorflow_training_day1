@@ -1,0 +1,291 @@
+---
+title: "Binary Classification with Text: The IMDB Dataset"
+subtitle: "Scenario 1: One-hot Encoding"
+author: "Rick Scavetta"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Initialize package
+# install.packages(keras)
+library(keras)
+library(tidyverse)
+```
+
+In this case study, we'll see another classification problem. Here, we're trying to predict one of two classes, i.e. binary. The set up is just like in the Reuters case study, but we have some changes to the netwrok architecture. Two new functions are used: the final activation function, `sigmoid`, and a new loss function, `binary_crossentropy`.
+
+## Install tensorflow 
+
+It's only necessary to run this once. 
+
+```{r install, eval = F}
+# for GPU
+# install_keras(tensorflow = "gpu")
+
+# or CPU:
+# install_keras() # for cpu
+```
+
+# Part 1: Data Preparation
+
+## Obtain data
+
+```{r data, warning = FALSE}
+c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_imdb(num_words = 10000)
+```
+
+## Examine data:
+
+```{r strImagesPre}
+length(train_data)
+length(test_data)
+```
+
+An example of the data
+
+```{r}
+train_data[[1]]
+```
+
+Map values back onto the lexicon which is stored as a named list. Each item in the list is an integer vector of length one. This number corresponds to the position in the word count list and the name of the vector is the actual word. 
+
+```{r}
+dataset_imdb_word_index() %>% 
+  unlist() %>%                      # produce a vector
+  sort() %>%                        # put them in order 
+  names() -> word_index             # take the ordered names
+
+# The indices are offset by 3 since 0, 1, and 2 are reserved 
+# for "padding", "start of sequence", and "unknown"
+library(purrr)
+train_data[[1]] %>% 
+  map(~ ifelse(.x >= 3, word_index[.x - 3], "?")) %>% 
+  as_vector() %>% 
+  cat()
+```
+
+## Prepare the data:
+
+This process is *exactly* the same that we saw with the Reuter's newswire data set. We'll again use one-hot encoding.
+
+```{r normImages}
+vectorize_sequences <- function(sequences, dimension = 10000) {
+  # Create a matrix of 0s
+  results <- matrix(0, nrow = length(sequences), ncol = dimension)
+
+  # Populate the matrix with 1s
+  for (i in 1:length(sequences))
+    results[i, sequences[[i]]] <- 1
+  results
+}
+
+train_data_vec <- vectorize_sequences(train_data)
+test_data_vec <- vectorize_sequences(test_data)
+```
+
+Let's look at the first example from the training set. Recall that these are the index positions of the words 
+
+```{r}
+train_example <- sort(unique(train_data[[1]]))
+train_example
+```
+
+Now we have a large matrix, where each row is 10000 elements long. Wherever we have a value in the above data set, the matrix has a 1
+
+```{r}
+# Just the first 100 values in the first entry (row)
+train_data_vec[1,1:100]
+```
+
+We can confirm this by counting the values:
+
+```{r}
+sum(train_data_vec[1,]) == length(train_example)
+```
+
+The position of the 1s corresponds to the indices above:
+
+```{r}
+which(as.logical(train_data_vec[1,]))
+```
+
+## Prepare labels:
+
+The `_labels` objects contain the review labels. Each review can only have one *label* (i.e. "sigle-label"), from a total of 2 possible *classes* (i.e. "binary"). `0` == `"negative"`, `1` == `"positive"`.
+
+```{r strLabelsPre}
+str(train_labels)
+```
+
+There are only two possible classes: 0, 1
+
+```{r}
+sort(unique(train_labels))
+```
+
+And there is a 50:50 split
+
+```{r}
+table(train_labels)
+```
+
+In contrast to our previous case studies, the labels of a binary classification will just be one value, 0 or 1, so we will just make the integer vector numeric.
+
+```{r prepLabels}
+train_labels <- as.numeric(train_labels)
+test_labels <- as.numeric(test_labels)
+```
+
+```{r strLabelsPost}
+str(train_labels)
+str(test_labels)
+```
+
+You can probably already recognize that we're not going to end our network with softmax, since that requires a probability distribution.
+
+# Part 2: Define Network
+
+## Define the network
+
+Here we specify the final activation function. We're going to use the sigmoid activation function, which will return a single value. That matches the format of our labels.
+
+```{r architecture}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 16, activation = "relu", input_shape = c(10000)) %>% 
+  layer_dense(units = 16, activation = "relu") %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+```
+
+## View a summary of the network
+
+```{r summary}
+summary(network)
+```
+
+## Compile
+
+Instead of `categorical_crossentropy` we're going to use `binary_crossentropy` since we only have two possible classes.
+
+```{r compile}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "binary_crossentropy",
+  metrics = c("accuracy")
+)
+```
+
+# Part 3: Validate our approach
+
+Let's set apart 10,000 samples in our training data to use as a validation set:
+
+```{r}
+index <- 1:10000
+
+val_data_vec <- train_data_vec[index,]
+train_data_vec <- train_data_vec[-index,]
+
+val_labels <- train_labels[index]
+train_labels = train_labels[-index]
+```
+
+Now let's train our network for 20 epochs:
+
+```{r echo=TRUE, results = "hide", warning = FALSE}
+history <- network %>% fit(
+  train_data_vec,
+  train_labels,
+  epochs = 20,
+  batch_size = 512,
+  validation_data = list(val_data_vec, val_labels)
+)
+```
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+The network begins to overfit after four epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
+
+```{r, echo=TRUE, results='hide'}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 16, activation = "relu", input_shape = c(10000)) %>% 
+  layer_dense(units = 16, activation = "relu") %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+  
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "binary_crossentropy",
+  metrics = c("accuracy")
+)
+
+history <- network %>% fit(
+  train_data_vec,
+  train_labels,
+  epochs = 4,
+  batch_size = 512,
+  validation_data = list(val_data_vec, val_labels)
+)
+```
+
+# Part 4: Check output
+
+## Metrics
+
+```{r metrics}
+metrics <- network %>% evaluate(test_data_vec, test_labels)
+```
+
+```{r}
+metrics
+metrics$acc
+# Error rate: incorrect calling
+1 - metrics$acc
+```
+
+## Predictions
+
+```{r predictions}
+network %>% predict_classes(test_data_vec[1:10,])
+```
+
+```{r allPredictions}
+predictions <- network %>% predict_classes(test_data_vec)
+actual <- unlist(test_labels)
+totalmisses <- sum(predictions != actual)
+totalmisses
+```
+
+A total of `r totalmisses` mismatches occured.
+
+# Confusion Matrix
+
+```{r confusion, echo = F}
+data.frame(target = actual,
+           prediction = predictions) %>% 
+  filter(target != prediction) %>% 
+  group_by(target, prediction) %>%
+  count() %>%
+  filter(n > 1) %>% 
+  ggplot(aes(target, prediction, size = n)) +
+  geom_point(shape = 15, col = "#9F92C6") +
+  scale_x_continuous("Actual Target", breaks = 0:1, labels = c("Negative", "Positive")) +
+  scale_y_continuous("Prediction", breaks = 0:1, labels = c("Negative", "Positive")) +
+  scale_size_area(max_size = 10) +
+  coord_fixed() +
+  ggtitle(paste(totalmisses, "mismatches")) +
+  theme_classic() +
+  theme(rect = element_blank(),
+        axis.line = element_blank(),
+        axis.text = element_text(colour = "black"))
+```
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+

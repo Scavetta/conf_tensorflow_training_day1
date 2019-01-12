@@ -1,0 +1,25 @@
+---
+title: "Session 3 Exercise: Instructions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(keras)
+```
+
+In this session we build and used a CNN for computer vision and used it on a binary classification problem using a classic dataset for image analysis.
+
+Let's see if we can put what we learned to good use.
+
+In the data folder you'll find two additional directories containing two computer vision challenges.
+
+## Labradoodle va Fried Chicken
+
+The first one, `labradoodle_friedchicken` is a fun exercise that tries to distinguish between friend chicken and the surpirisngly similar looking brown labradoodle. The data was taken from this github repository. There is a machine learning solution there, but you can take a look at that later. Try to apply what we have learned in class on this data set.
+
+## Uninfected vs Infected
+
+Simple histoloy staining of cell samples is a cheap, quick and easy method for visual analysis of cells. In this exercise you are tasked with building 

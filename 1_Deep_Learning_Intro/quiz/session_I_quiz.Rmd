@@ -1,0 +1,687 @@
+---
+title: "Session 1"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(keras)
+library(tidyverse)
+library(cowplot)
+
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Terminology I - Machine Learning
+
+There are terms which are common among the many methods in machine learning. Let's make sure we're all on the same page.
+
+```{r MC_terms_ML}
+
+quiz(caption = "What do these terms refer to?",
+  question("Classification",
+           answer("Continuous predictor variable(s)"),
+           answer("Categorical predictor variable(s)"),
+           answer("Continuous response variable"),
+           answer("Categorical response variable", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Regression",
+           answer("Continuous predictor variable(s)"),
+           answer("Categorical predictor variable(s)"),
+           answer("Continuous response variable", correct = TRUE),
+           answer("Categorical response variable"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Supervised Learning",
+           answer("A training and test set"),
+           answer("Small, manually-collected data set"),
+           answer("Labeled instances", correct = TRUE),
+           answer("Various flavors of classification and regression", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! By manually-curated we mean that supervised learning is not necessarily based on manually curat"
+  ),
+  question("Unsupervised Learning",
+           answer("Dimension reduction", correct = TRUE),
+           answer("Clustering", correct = TRUE),
+           answer("Unlabeled instances", correct = TRUE),
+           answer("large data sets with many variables and/or observations"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("The Curse of Dimensionality",
+           answer("Many variables", correct = TRUE),
+           answer("A plot with too many endoding aesthetics"),
+           answer("Something to do with Captain Picard"),
+           answer("A high-dimensional feature space", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Single-label, Multi-class",
+           answer("A specific type of classification", correct = TRUE),
+           answer("This is not a thing"),
+           answer("Each instance mabe belong to more than one group"),
+           answer("There are many groups, but each instance can only belong to one.", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Imbalanced classes",
+           answer("Poorly-written R code"),
+           answer("In classification, when some classes are over or under-represented.", correct = TRUE),
+           answer("Systematic bias in my sampling scheme"),
+           answer("Too much emphasis on data frames over lists"),
+           allow_retry = T,
+           correct = "Great!"
+  )
+  
+)
+
+```
+
+## Terminology II - Deep Learning
+
+```{r MC_terma_DL}
+
+quiz(caption = "Terms in Deep Learning",
+  question("keras is ",
+           answer("A high-level package for manipulating various deep learning frameworks", correct = TRUE),
+           answer("A low-level R specific package for building tensors"),
+           answer("Originally a Python package developed at Google", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Which of the following frameworks can be used for deep learning?",
+           answer("TensorFlow", correct = TRUE),
+           answer("Microsoft Cognitive Toolkit", correct = TRUE),
+           answer("Microsoft Excel"),
+           answer("Theano", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("If many of the questions we",
+           answer("XXX"),
+           answer("YYY", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Hyperparameters are:",
+           answer("The number of layers and the number of nodes in each layer", correct = TRUE),
+           answer("The activation, loss and optimizer functions"),
+           answer("The weights and biases of a model"),
+           answer("The accuracy"),
+           allow_retry = T,
+           correct = "Great! We set this up _before_ we begin training. They don't change. The activation, loss and optimizer function also don't change, but this is not what we're refereing to when we talk about hyperparameters."
+  ),
+  question("Parameters are:",
+           answer("The number of layers and the number of nodes in each layer"),
+           answer("The activation, loss and optimizer functions"),
+           answer("The weights and biases of a model", correct = TRUE),
+           answer("The accuracy"),
+           allow_retry = T,
+           correct = 'Great! This is what we are trying to find when we talk about "training" a model.'
+  )
+)
+
+```
+
+## keras Functions
+
+```{r MC_func_keras}
+
+quiz(caption = "What do the following functions do?",
+  question("`%<-%` operator",
+           answer("Assign values of a list to names contained in a nested vector", correct = TRUE),
+           answer("Assign a value to an object"),
+           answer("It's a relational operator, producing a logical vector as output"),
+           answer("This is not a valid operator in R"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("`keras_model_sequential()`",
+           answer("Initialize a neural network structure", correct = TRUE),
+           answer("Fits a model"),
+           answer("Compiles a model"),
+           answer("Trains a model"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question('`layer_dense(units = 64, activation = "relu", input_shape = 100)`',
+           answer("Add a densly connected layer with 64 nodes taking input from 100 nodes.", correct = TRUE),
+           answer("Initialize a neural network structure"),
+           answer("To be used as the final layer in a classification problem with 100 classes."),
+           answer("This is not a valid command"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("`layer_dense(units = 1)`",
+           answer("Add a densly connected layer default values of 2^6 nodes, taking input from 2^4 nodes."),
+           answer("Initialize a neural network structure"),
+           answer("To be used as the final layer in a regression problem.", correct = TRUE),
+           answer("To be used as the final layer in a classification problem."),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question('`compile(optimizer = "rmsprop", 
+        loss = "mse", 
+        metrics = c("mae")
+  )`',
+           answer("Initialize a neural network structure"),
+           answer("Fits a model"),
+           answer("Compiles a model", correct = TRUE),
+           answer("Trains a model"),
+           allow_retry = T,
+           correct = "Great!"
+  )
+  
+)
+
+```
+
+```{r MC_func_activ}
+
+quiz(caption = "Activtaion functions",
+  question("What is the purpose of an activation funcion?",
+           answer("Transform the weights and biases of a layer before proceeding to the next layer.", correct = TRUE),
+           answer("Are necessary to `kick start` deep learning"),
+           answer("Normalize data, like z-scores"),
+           answer("Reduce noise in our network inputs", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Which are activation functions that we can use in keras?",
+           answer("ReLU", correct = TRUE),
+           answer("Leaky ReLU", correct = TRUE),
+           answer("ELU", correct = TRUE),
+           answer("PReLU", correct = TRUE),
+           answer("tanh", correct = TRUE),
+           answer("Sigmoidal", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  )
+  
+)
+
+```
+
+```{r}
+DF <- data.frame(x = c(0, 0),
+                 y = c(0, 0),
+                 xend = c(-5, 5),
+                 yend = c(0, 5))
+
+purple <- "#9F92C6"
+
+p1 <- ggplot(DF, aes(x, y)) +
+  geom_segment(aes(xend = xend, yend = yend),
+               col = purple,
+               arrow = arrow(length = unit(0.5,"cm"))) +
+  labs(y = "f(x)", x = "x") +
+  scale_x_continuous(breaks = -5:5, expand = c(0,0.3)) +
+  scale_y_continuous(breaks = 0:5, expand = c(0,0.3)) +
+  coord_fixed(1) +
+  ggtitle("A") +
+  theme(panel.grid.major = element_line(colour = "grey92"),
+        rect = element_blank(),
+        axis.line = element_blank())
+
+x <- seq(-5,5,length.out = 500)
+values <- (2/(1 + exp(1)^(-2*x)))-1
+DF <- data.frame(x, values, Function = "tanh", stringsAsFactors = F)
+
+
+p2 <- ggplot(DF, aes(x, values)) +
+  geom_line(col = purple) +
+  labs(y = "f(x)", x = "x") +
+  scale_x_continuous(breaks = -5:5, expand = c(0,0.3)) +
+  scale_y_continuous(breaks = -1:1, expand = c(0,0.3)) +
+  coord_fixed(1) +
+  ggtitle("B") +
+  theme(panel.grid.major = element_line(colour = "grey92"),
+        rect = element_blank(),
+        axis.line = element_blank())
+
+x <- seq(-5,5,length.out = 500)
+values <- (1)/(1 + exp(1)^(-x))
+
+DF <- data.frame(x, values)
+
+p3 <- ggplot(DF, aes(x, values)) +
+  geom_line(col = purple) +
+  labs(y = "f(x)", x = "x") +
+  scale_x_continuous(breaks = -5:5, expand = c(0,0.3)) +
+  scale_y_continuous(breaks = -1:1, expand = c(0,0.3)) +
+  coord_fixed(1) +
+  ggtitle("C") +
+  theme(panel.grid.major = element_line(colour = "grey92"),
+        rect = element_blank(),
+        axis.line = element_blank())
+
+# plot_grid(p1, p2, p3, labels = "AUTO", ncol = 1, align = "v", rel_heights = c(5, 2, 2))
+
+p1
+p2
+p3
+
+```
+
+```{r MC_func_plot}
+
+quiz(caption = "Consider the above plots. What function is plotted ...",
+  question("... in plot A?",
+           answer("ReLU", correct = TRUE),
+           answer("Leaky ReLU"),
+           answer("ELU"),
+           answer("PReLU"),
+           answer("tanh"),
+           answer("Sigmoidal"),
+           allow_retry = T,
+           correct = "Great! ReLU is a pretty straight-forward function and we'll be seeing a lot of it."
+  ),
+  question("... in plot B?",
+           answer("ReLU"),
+           answer("Leaky ReLU"),
+           answer("ELU"),
+           answer("PReLU"),
+           answer("tanh", correct = TRUE),
+           answer("Sigmoidal", message = "This looks a lot like a sigmoidal curve, but pay attention to the y-axis!"),
+           allow_retry = T,
+           correct = "Great! tanh has been largly replaced by ReLU & Co. but was very popular for a time."
+  ),
+  question("... in plot C?",
+           answer("ReLU", correct = TRUE),
+           answer("Leaky ReLU"),
+           answer("ELU"),
+           answer("PReLU"),
+           answer("tanh"),
+           answer("Sigmoidal", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! Can you remember when we use a sigmoidal activation function?"
+  )
+)
+
+```
+
+```{r MC_loss}
+
+quiz(caption = "What is the purpose of a loss function?",
+  question("... in plot A?",
+           answer("It's the function whose product we are trying to minimize", correct = TRUE),
+           answer("It's the function that we use to normalize our data"),
+           answer("We adjust the values of the input using this function"),
+           answer("We adjust the parameters of each layer according to the result of this function", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("Which are examples of loss functions?",
+           answer("categorical_crossentropy", correct = TRUE),
+           answer("sparse_categorical_crossentropy", correct = TRUE),
+           answer("binary_crossentropy", correct = TRUE),
+           answer("mean_squared_error", correct = TRUE),
+           answer("mean_absolute_error", correct = TRUE),
+           allow_retry = T,
+           correct = "Great!"
+  )
+)
+
+```
+
+```{r MC_metrics}
+
+quiz(caption = "Metrics",
+  question("What is the purpose of the metrics?",
+           answer("It tells us how well our model performs", correct = TRUE),
+           answer("We adjust our parameters to maximize this value"),
+           answer("We adjust our parameters to maximize this value"),
+           answer("It tells us about the number of features we have"),
+           allow_retry = T,
+           correct = "Great! Although we want this value to be high, we're not actually controlling it directly. It's a result of adjusting the parameter given the output from our loss function and tells us how well our model performs."
+  ),
+  question("Which are examples of metrics we may choose to calculate?",
+           answer("mae", correct = TRUE),
+           answer("acc", correct = TRUE),
+           answer("cov"),
+           answer("crossentropy"),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  )
+)
+
+```
+
+## Math Functions
+
+```{r MC_optim}
+
+quiz(caption = "Optimizer Functions",
+  question("What is the purpose of an optimizer function?",
+           answer("Informs us how to to update our parameters given the result of the loss function", correct = TRUE),
+           answer("It's a measure of accuracy"),
+           answer("It's the value we are trying to maximize in deep learning"),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  ),
+  question("Which are examples of optimizer functions?",
+           answer("SGD", correct = TRUE),
+           answer("ReLU"),
+           answer("RMSprop", correct = TRUE),
+           answer("Adagrad", correct = TRUE),
+           answer("Sigmoid"),
+           answer("Adadelta", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! We'll be using RMSprop."
+  )
+)
+
+```
+
+
+```{r MC_loss}
+
+quiz(caption = "Loss Functions",
+  question("What is the purpose of a loss function?",
+           answer("Informs us how to to update our parameters given the result of the loss function", correct = TRUE),
+           answer("It's the function whose result we are trying to minimize"),
+           answer("Informs us how to to update our parameters after each pass-through."),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  ),
+  question("Which are examples of loss functions that we saw in the workshop?",
+           answer("Sigmoid"),
+           answer("None (i.e. scalar)", correct = TRUE),
+           answer("Categorical Crossentropy", correct = TRUE),
+           answer("Binary Crossentropy", correct = TRUE),
+           answer("Sparse Categorical Crossentropy"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("MSE (Mean Squared Error)"),
+           answer("Softmax"),
+           allow_retry = T,
+           correct = "Great! There."
+  )
+)
+
+
+```
+
+## Use cases
+
+In sesison 1 we saw that we use the `ReLU` activation function for the hidden layers and `RMSprop` as the model's optimizer function. But there are many other funcitons we need to keep track of, like the loss, the evaluation metric, the final layer activation funciton.
+
+We'll discuss choosing the numbe and size of the layers in more detail in session 2, but we already saw the the size of the last layer is dictated by the type of analytical problem.
+
+Consider the three scenarios we saw in session 1. Which functions would you use in eash case. See if you can answer without refering back to the workshop material.
+
+
+```{r MC_chooseReg}
+
+quiz(caption = "Regression",
+  question("Loss function:",
+           answer("some fun", correct = TRUE),
+           answer("It's the function whose result we are trying to minimize"),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  ),
+  question("Final layer activation function:",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  ),
+  question("Neurons in last layer:",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  ),
+  question("Evaluation metric function",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  )
+)
+
+
+```
+
+
+```{r MC_chooseBinClass}
+
+quiz(caption = "Regression",
+  question("Loss function:",
+           answer("some fun", correct = TRUE),
+           answer("It's the function whose result we are trying to minimize"),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  ),
+  question("Final layer activation function:",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  ),
+  question("Neurons in last layer:",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  ),
+  question("Evaluation metric function",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  )
+)
+
+
+```
+
+
+```{r MC_chooseMultiClass}
+
+quiz(caption = "Regression",
+  question("Loss function:",
+           answer("some fun", correct = TRUE),
+           answer("It's the function whose result we are trying to minimize"),
+           allow_retry = T,
+           correct = "Great! There are a few different optimizer functions to choose from."
+  ),
+  question("Final layer activation function:",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  ),
+  question("Neurons in last layer:",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  ),
+  question("Evaluation metric function",
+           answer("Sigmoid"),
+           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! There."
+  )
+)
+
+
+```
+
+
+## Tensors
+
+Consider the following four data sets and the output of some helpful functions.
+
+### `data_1`:
+
+`head()`:
+
+```{r}
+c(c(data_1, data_5), c(test_data, test_targets)) %<-% dataset_boston_housing()
+
+head(data_1)
+
+```
+
+`str()`:
+
+```{r}
+str(data_1)
+```
+
+`dim()`: `r dim(data_1)`
+
+`typeof()`: `r typeof(data_1)`
+
+`class()`: `r class(data_1)`
+
+---
+
+### `data_2`:
+
+`head()`:
+
+```{r}
+
+abalone_names <- c("Type",
+                   "LongestShell",
+                   "Diameter",
+                   "Height",
+                   "WholeWeight",
+                   "WhuckedWeight",
+                   "VisceraWeight",
+                   "ShellWeight",
+                   "Rings")
+
+data_2 <- read.csv("abalone.data",
+                    header = F,
+                    col.names = abalone_names)
+
+
+head(data_2)
+
+```
+
+`str()`:
+
+```{r}
+str(data_2)
+```
+
+`dim()`: `r dim(data_2)`
+
+`typeof()`: `r typeof(data_2)`
+
+`class()`: `r class(data_2)`
+
+---
+
+### `data_3`:
+
+`head()`:
+
+```{r}
+
+c(c(data_3, train_labels), c(test_images, test_labels)) %<-% dataset_mnist()
+
+head(data_3)
+
+
+```
+
+`str()`:
+
+```{r}
+str(data_3)
+```
+
+`dim()`: `r dim(data_3)`
+
+`typeof()`: `r typeof(data_3)`
+
+`class()`: `r class(data_3)`
+
+---
+
+### `data_4`:
+
+`head()`:
+
+```{r}
+
+# Convert sex to integer :
+data_2 %>%
+  mutate(Type = as.integer(Type)) %>%
+  as.matrix() %>%
+  unname() -> data_4
+
+head(data_4)
+
+```
+
+`str()`:
+
+```{r}
+str(data_4)
+```
+
+`dim()`: `r dim(data_4)`
+
+`typeof()`: `r typeof(data_4)`
+
+`class()`: `r class(data_4)`
+
+---
+
+### `data_5`:
+
+`head()`:
+
+```{r}
+head(data_5)
+```
+
+`str()`:
+
+```{r}
+str(data_5)
+```
+
+`dim()`: `r dim(data_5)`
+
+`typeof()`: `r typeof(data_5)`
+
+`class()`: `r class(data_5)`
+
+---
+
+```{r MC_tensors}
+quiz(
+  question("Which of the above are tensors:",
+    answer("data_1", correct = TRUE),
+    answer("data_2", message = "We could make data_2 into a tensor, but as it is now, we just have a classic data frame."),
+    answer("data_3", correct = TRUE),
+    answer("data_4", correct = TRUE),
+    answer("data_5", correct = TRUE),
+    allow_retry = T,
+    correct = "Great! Notice that tensors are not specific classes or types in R. What we are already familiar as vectors, matrices and arrays can be thought of as tensors."
+  )
+)
+```
+
+## Your Turn
+
+In Sesison 1 We introduced the following functions:
+
+
+
+```{r S1_YT}
+
+
+```
+
