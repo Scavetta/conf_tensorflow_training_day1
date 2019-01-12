@@ -1,4 +1,10 @@
 base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
 keras
 tidyverse
 ggplot2
@@ -9,8 +15,3 @@ purrr
 dplyr
 stringr
 forcats
-lattice
-caret
-randomForest
-kableExtra
-bindrcpp

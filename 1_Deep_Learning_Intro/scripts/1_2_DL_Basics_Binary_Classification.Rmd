@@ -1,6 +1,6 @@
 ---
 title: "Introduction to Deep Learning"
-subtitle: "Classification -- Binary, no validation"
+subtitle: "Classification -- Binary"
 author: "Rick Scavetta"
 output:
   html_document:
@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = FALSE, eval = TRUE)
 
 # Initialize packages
 library(keras)
@@ -22,11 +22,23 @@ library(tidyverse)
 
 # Session 1 {.tabset .tabset-fade .tabset-pills}
 
-## Intro
+## Functions & Take-home Message
 
-# Part 1: Data Preparation
+### Take-home Message
 
-## Obtain data
+In this case study, we'll perform a binary classification to predict one of two possible outcomes from 13 predictor variables. 
+
+We'll use the following functions in our network:
+
+| Name                           | Function              |
+|:-------------------------------|:----------------------|
+| Loss function                  | `binary_crossentropy` |
+| Metric                         | `accuracy`            |
+| last-layer activation function | `sigmoid`             |
+
+## Part 1: Data Preparation
+
+### Obtain data
 
 We already saw how to obtain and transform the data, so I'm just going to call those functions here. For a classification, it would make more sense to name our `_targets` as `_labels` instead. But we'll just use the same names as before.
 
@@ -34,9 +46,9 @@ We already saw how to obtain and transform the data, so I'm just going to call t
 source("Boston_Z.R")
 ```
 
-## Prepare the training data:
+### Prepare the training data:
 
-The target, response variable is continuous. For this example, we'll pretend that it's binary.
+The target, i.e. response, variable is continuous, but for this example, we'll pretend that it's binary so that we can see how to handle a binary classification.
 
 ```{r strTargets}
 str(train_targets)
@@ -44,27 +56,18 @@ str(test_targets)
 ```
 
 ```{r}
-
 train_targets <- as.numeric(cut(train_targets, seq(0,50,25))) - 1
-test_targets <- as.numeric(cut(test_targets, seq(0,50,25))) - 1
-
 table(train_targets)
-
 ```
 
 ```{r}
-
+test_targets <- as.numeric(cut(test_targets, seq(0,50,25))) - 1
 table(test_targets)
 ```
 
-```{r}
-# train_targets_vec <- to_categorical(train_targets)
-# test_targets_vec <- to_categorical(test_targets)
-```
+## Part 2: Define Network
 
-# Part 2: Define Network
-
-## Define the network
+### Define the network
 
 Here we specify the final activation function. We're going to use the sigmoid activation function, which will return a single value. That matches the format of our labels.
 
@@ -75,13 +78,13 @@ network <- keras_model_sequential() %>%
   layer_dense(units = 1, activation = "sigmoid")
 ```
 
-## View a summary of the network
+### View a summary of the network
 
 ```{r summary}
 summary(network)
 ```
 
-## Compile
+### Compile
 
 Instead of `categorical_crossentropy` we're going to use `binary_crossentropy` since we only have two possible classes.
 
@@ -93,7 +96,7 @@ network %>% compile(
 )
 ```
 
-# Part 3: Training our approach
+## Part 3: Training our approach
 
 Now let's train our network for 20 epochs:
 
@@ -112,8 +115,7 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-
-The network begins to overfit after about 30 - 40 epochs.
+The network begins to overfit after about 30 - 40 epochs. We'll discuss this in more detail in the next session.
 
 Let's train a new network from scratch for four epochs and then evaluate it on the test set.
 
@@ -136,9 +138,9 @@ history <- network %>% fit(
   batch_size = 2^4)
 ```
 
-# Part 4: Check output
+## Part 4: Check output
 
-## Metrics
+### Metrics
 
 ```{r metrics}
 metrics <- network %>% evaluate(test_data, test_targets)
@@ -146,12 +148,11 @@ metrics <- network %>% evaluate(test_data, test_targets)
 
 ```{r}
 metrics
-
 ```
 
 The error rate, i.e. proportion of incorrect calling, is `r 1 - metrics$acc`.
 
-## Predictions
+### Predictions
 
 ```{r predictions}
 network %>% predict_classes(test_data[1:10,])
@@ -166,7 +167,7 @@ totalmisses
 
 A total of `r totalmisses` mismatches occured.
 
-# Confusion Matrix
+### Confusion Matrix
 
 ```{r confusion, echo = F}
 data.frame(target = actual,
@@ -177,8 +178,8 @@ data.frame(target = actual,
   filter(n > 1) %>% 
   ggplot(aes(target, prediction, size = n)) +
   geom_point(shape = 15, col = "#9F92C6") +
-  scale_x_continuous("Actual Target", breaks = 0:1, labels = c("Negative", "Positive")) +
-  scale_y_continuous("Prediction", breaks = 0:1, labels = c("Negative", "Positive")) +
+  scale_x_continuous("Actual Target", breaks = 0:1, limits = 0:1, labels = c("Negative", "Positive")) +
+  scale_y_continuous("Prediction", breaks = 0:1, limits = 0:1, labels = c("Negative", "Positive")) +
   scale_size_area(max_size = 10) +
   coord_fixed() +
   ggtitle(paste(totalmisses, "mismatches")) +
@@ -187,10 +188,3 @@ data.frame(target = actual,
         axis.line = element_blank(),
         axis.text = element_text(colour = "black"))
 ```
-
-# Session Info
-
-```{r}
-sessionInfo()
-```
-
