@@ -16,6 +16,3 @@ validation_uninfected_dir <- file.path(validation_dir, "uninfected")
 test_dir <- file.path(base_dir, "test")
 test_parasite_dir <- file.path(test_dir, "parasite")
 test_uninfected_dir <- file.path(test_dir, "uninfected")
-
-
-

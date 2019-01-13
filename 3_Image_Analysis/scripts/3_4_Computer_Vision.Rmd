@@ -82,15 +82,25 @@ history <- model %>% fit_generator(
 # Save history and model
 
 ```{r eval = FALSE}
-save(history, file = "history_vgg16_fine.RData")
 
-model %>% save_model_hdf5("cats_and_dogs_vgg16_fine.h5")
+# save(history, file = "history_vgg16_fine.RData")
+# model %>% save_model_hdf5("cats_and_dogs_vgg16_fine.h5")
 
 ```
 
 ```{r}
 
+# you can download the file here, but the connection may be slow:
+# download.file("http://scavetta.academy/models/cats_and_dogs_vgg16_fine.h5", "cats_and_dogs_vgg16_fine.h5")
+# or in terminal:
+# wget http://scavetta.academy/models/cats_and_dogs_vgg16_fine.h5
+
+# For the workshop it will be provided for you
 load("history_vgg16_fine.RData")
+
+
+
+
 plot(history)
 ```
 

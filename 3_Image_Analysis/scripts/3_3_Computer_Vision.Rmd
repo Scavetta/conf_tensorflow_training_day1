@@ -221,6 +221,8 @@ plot(history_vgg16)
 # Evaluation
 
 ```{r}
+# Execute this in the terminal to download the model:
+# wget http://scavetta.academy/models/cats_and_dogs_vgg16_fine.h5
 
 model_vgg16 <- load_model_hdf5("cats_and_dogs_vgg16.h5")
 

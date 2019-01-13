@@ -1,6 +1,10 @@
 # Data Directories for cat and dog pictures
 
-base_dir <- "~/data/cats_and_dogs"
+# For local use:
+# base_dir <- "~/data/cats_and_dogs"
+
+# For RStudio::Conf
+base_dir <- "/../../usr/share/class/cats_and_dogs"
 
 # Train sets:
 train_dir <- file.path(base_dir, "train")
