@@ -1,0 +1,29 @@
+
+> #' Trains a simple deep NN on the MNIST dataset.
+> #'
+> #' Gets to 98.40% test accuracy after 20 epochs (there is *a lot* of margin for
+> #' paramet .... [TRUNCATED] 
+
+> # Hyperparameter flags ---------------------------------------------------
+> 
+> FLAGS <- flags(
++   flag_numeric("dropout1", 0.4),
++   flag_numeric( .... [TRUNCATED] 
+
+> # Data Preparation ---------------------------------------------------
+> 
+> # The data, shuffled and split between train and test sets
+> mnist <- da .... [TRUNCATED] 
+
+> x_train <- mnist$train$x
+
+> y_train <- mnist$train$y
+
+> x_test <- mnist$test$x
+
+> y_test <- mnist$test$y
+
+> # Reshape
+> dim(x_train) <- c(nrow(x_train), 784)
+
+> dim(x_test) <- c(nrow(x_test), 784)

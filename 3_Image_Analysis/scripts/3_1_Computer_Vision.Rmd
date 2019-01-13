@@ -1,14 +1,23 @@
 ---
-title: "Computer Vision: Intro to Convnets"
+title: "Computer Vision"
+subtitle: "Intro to Convnets"
 author: "Rick Scavetta"
-output: html_document
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
-# Initialize package
+# Initialize packages
 library(keras)
+library(tidyverse)
 
 # define the directories:
 source("def_dir.R")
