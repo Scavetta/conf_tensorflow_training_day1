@@ -13,15 +13,15 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 library(keras)
 
 # define the directories:
-source("def_dir.R")
+source("dir_cat_dog.R")
 ```
 
 # Obtain a pre-trained networks
 
 ```{r getModel}
 
-model <- load_model_hdf5("cats_and_dogs_small_2.h5")
-model
+model_conv <- load_model_hdf5("cats_and_dogs_small_convnet.h5")
+model_conv
 
 ```
 
@@ -29,15 +29,17 @@ model
 
 ```{r getIMG}
 
-img_path <- "~/Downloads/cats_and_dogs_small/test/cats/cat.1700.jpg"
+img_path <- "~/data/cats_and_dogs/test/cats/cat.1700.jpg"
 img <- image_load(img_path, target_size = c(150, 150))
+
+
 img_tensor <- image_to_array(img)
 img_tensor <- array_reshape(img_tensor, c(1, 150, 150, 3))
 img_tensor <- img_tensor / 255
 
 # Preprocesses the image into a 4D tensor
-   dim(img_tensor)
-   
+dim(img_tensor)
+
 ```
 
 # plot image:
@@ -52,8 +54,8 @@ plot(as.raster(img_tensor[1,,,]))
 
 ```{r act0}
 
-layer_outputs <- lapply(model$layers[1:8], function(layer) layer$output)
-activation_model <- keras_model(inputs = model$input, outputs = layer_outputs)
+layer_outputs <- lapply(model_conv$layers[1:8], function(layer) layer$output)
+activation_model <- keras_model(inputs = model_conv$input, outputs = layer_outputs)
 
 ```
 
@@ -104,6 +106,8 @@ plot_channel(first_layer_activation[1,,,7])
 
 # Visualizing every channel in every intermediate activation
 
+These have been saved to the working directory.
+
 ```{r vizAll}
 
 image_size <- 58
@@ -111,7 +115,7 @@ images_per_row <- 16
 
 for (i in 1:8) {
   layer_activation <- activations[[i]]
-  layer_name <- model$layers[[i]]$name
+  layer_name <- model_conv$layers[[i]]$name
   n_features <- dim(layer_activation)[[4]]
   n_cols <- n_features %/% images_per_row
   png(paste0("cat_activations_", i, "_", layer_name, ".png"),
@@ -135,21 +139,21 @@ for (i in 1:8) {
 
 ```{r}
 
-        library(keras)
-        model <- application_vgg16(
-          weights = "imagenet",
-          include_top = FALSE
+library(keras)
+
+model <- application_vgg16(
+  weights = "imagenet",
+  include_top = FALSE
 )
-        layer_name <- "block3_conv1"
-        filter_index <- 1
-        layer_output <- get_layer(model, layer_name)$output
-        loss <- k_mean(layer_output[,,,filter_index])
+
+layer_name <- "block3_conv1"
+filter_index <- 1
+layer_output <- get_layer(model, layer_name)$output
+loss <- k_mean(layer_output[,,,filter_index])
 
 ```
 
-
 # Obtaining the gradient of the loss with regard to the input (Listing 5.33)
-
 
 The call to k_gradients returns an R list of tensors (of size 1 in this case). Hence, you keep only the first element—which is a tensor.
 
@@ -160,7 +164,6 @@ The call to k_gradients returns an R list of tensors (of size 1 in this case). H
 grads <- k_gradients(loss, model$input)[[1]]
 
 ```
-
 
 # Gradient-normalization trick (Listing 5.34)
 
@@ -177,7 +180,7 @@ grads <- grads / (k_sqrt(k_mean(k_square(grads))) + 1e-5)
 
 iterate <- k_function(list(model$input), list(loss, grads))
 c(loss_value, grads_value) %<-%
-    iterate(list(array(0, dim = c(1, 150, 150, 3))))
+  iterate(list(array(0, dim = c(1, 150, 150, 3))))
 
 ```
 
@@ -204,14 +207,14 @@ for (i in 1:40) {
 ```{r}
 deprocess_image <- function(x) {
   dms <- dim(x)
-
-    # Normalizes the tensor: centers on 0., ensures that std is 0.1
+  
+  # Normalizes the tensor: centers on 0., ensures that std is 0.1
   x <- x - mean(x)
   x <- x / (sd(x) + 1e-5)
   x <- x * 0.1
   
-# Clips to [0, 1]
-    x <- x + 0.5
+  # Clips to [0, 1]
+  x <- x + 0.5
   x <- pmax(0, pmin(x, 1))
   
   # Returns with the original image dimensions
@@ -239,20 +242,19 @@ generate_pattern <- function(layer_name, filter_index, size = 150) {
   
   # Starts from a gray image with some noise
   input_img_data <-
-  array(runif(size * size * 3), dim = c(1, size, size, 3)) * 20 + 128
-# Runs gradient ascent for 40 steps
+    array(runif(size * size * 3), dim = c(1, size, size, 3)) * 20 + 128
+  # Runs gradient ascent for 40 steps
   step <- 1
-for (i in 1:40) {
-  c(loss_value, grads_value) %<-% iterate(list(input_img_data))
-  input_img_data <- input_img_data + (grads_value * step)
+  for (i in 1:40) {
+    c(loss_value, grads_value) %<-% iterate(list(input_img_data))
+    input_img_data <- input_img_data + (grads_value * step)
+  }
+  
+  img <- input_img_data[1,,,]
+  deprocess_image(img)
 }
 
-img <- input_img_data[1,,,]
-   deprocess_image(img)
- }
-
 ```
-
 
 # Generating a grid of all filter response patterns in a layer (Listing 5.39)
 
@@ -262,7 +264,7 @@ library(gridExtra)
 dir.create("vgg_filters")
 for (layer_name in c("block1_conv1", "block2_conv1",
                      "block3_conv1", "block4_conv1")) {
-size <- 140
+  size <- 140
   png(paste0("vgg_filters/", layer_name, ".png"),
       width = 8 * size, height = 8 * size)
   grobs <- list()
@@ -271,11 +273,11 @@ size <- 140
       pattern <- generate_pattern(layer_name, i + (j*8) + 1, size = size)
       grob <- rasterGrob(pattern,
                          width = unit(0.9, "npc"),
-                   height = unit(0.9, "npc"))
-grobs[[length(grobs)+1]] <- grob
-} }
+                         height = unit(0.9, "npc"))
+      grobs[[length(grobs)+1]] <- grob
+    } }
   grid.arrange(grobs = grobs, ncol = 8)
-dev.off()
+  dev.off()
 }
 
 ```

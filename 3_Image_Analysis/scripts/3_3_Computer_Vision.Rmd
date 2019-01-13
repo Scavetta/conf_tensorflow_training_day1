@@ -11,9 +11,10 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 # Initialize package
 library(keras)
+library(tidyverse)
 
 # define the directories:
-source("def_dir.R")
+source("dir_cat_dog.R")
 ```
 
 # Obtain a pre-trained convnet base
@@ -24,7 +25,6 @@ conv_base <- application_vgg16(
   include_top = FALSE,
   input_shape = c(150, 150, 3)
 )
-
 ```
 
 ```{r summaryConv}
@@ -70,10 +70,6 @@ train <- extract_features(train_dir, 2000)
 validation <- extract_features(validation_dir, 1000)
 test <- extract_features(test_dir, 1000)
 
-# train <- extract_features(paste0("/home/rstudio-user",sub("~","",train_dir)), 2000)
-# validation <- extract_features(paste0("/home/rstudio-user",sub("~","",validation_dir)), 1000)
-# test <- extract_features(paste0("/home/rstudio-user",sub("~","",test_dir)), 1000)
-
 ```
 
 # Reshape features
@@ -102,7 +98,7 @@ model
 
 ```
 
-Compile and train:
+Compile and train. This will be relatively quick.
 
 ```{r modelTrain}
 
@@ -154,7 +150,9 @@ cat(length(model$trainable_weights), " trainable weights before freezing.\n")
 
 # Training the model end-to-end with a frozen convolutional base
 
-```{r datagen1}
+Alright, now for the real, full model. This will take a bit of time, so I've saved the results for you.
+
+```{r datagen1, eval = FALSE}
 
 train_datagen = image_data_generator(
   rescale = 1/255,
@@ -192,7 +190,7 @@ model %>% compile(
   metrics = c("accuracy")
 )
 
-history2 <- model %>% fit_generator(
+history_vgg16 <- model %>% fit_generator(
   train_generator,
   steps_per_epoch = 100,
   epochs = 30,
@@ -202,8 +200,40 @@ history2 <- model %>% fit_generator(
 
 ```
 
+# Save history and model
+
+```{r eval = FALSE}
+save(history_vgg16, file = "history_vgg16.RData")
+
+model %>% save_model_hdf5("cats_and_dogs_vgg16.h5")
+
+```
+
+
 # View history
 
 ```{r hist2s}
-plot(history2)
+load("history_vgg16.RData")
+
+plot(history_vgg16)
 ```
+
+# Evaluation
+
+```{r}
+
+model_vgg16 <- load_model_hdf5("cats_and_dogs_vgg16.h5")
+
+test_generator <- flow_images_from_directory(
+  test_dir,
+  test_datagen,
+  target_size = c(150, 150),
+  batch_size = 20,
+  class_mode = "binary"
+)
+
+model_vgg16 %>% evaluate_generator(test_generator, steps = 50)
+
+```
+
+

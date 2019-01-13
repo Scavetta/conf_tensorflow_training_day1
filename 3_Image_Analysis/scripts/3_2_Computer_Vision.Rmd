@@ -9,9 +9,10 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 # Initialize package
 library(keras)
+library(tidyverse)
 
 # define the directories:
-source("def_dir.R")
+source("dir_cat_dog.R")
 ```
 
 # Part 1: Data Preparation
@@ -26,8 +27,7 @@ data.frame(Cats = c(length(list.files(train_cats_dir)),
            Dogs = c(length(list.files(train_dogs_dir)),
                     length(list.files(validation_dogs_dir)),
                     length(list.files(test_dogs_dir))),
-           row.names = c("Training", "Validation", "Test")) %>% 
-  knitr::kable()
+           row.names = c("Training", "Validation", "Test"))
 
 
 ```
@@ -164,6 +164,8 @@ validation_generator <- flow_images_from_directory(
 
 ## Train model:
 
+This will take a long time -- even on a GPU -- so I've saved the model and history after training. You can use that later on for assessing performance.
+
 ```{r modelTrain}
 
 history <- model %>% fit_generator(
@@ -176,8 +178,37 @@ history <- model %>% fit_generator(
 
 ```
 
-Save model:
+Save model and history for later
 
-```{r saveModel}
-model %>% save_model_hdf5("cats_and_dogs_small_2.h5")
+```{r saveModel, eval = FALSE}
+
+save(history, file = "history_augmentation.RData")
+
+model %>% save_model_hdf5("cats_and_dogs_augmentation.h5")
+```
+
+
+View history
+
+```{r historyView}
+# load("history_augmentation.RData")
+plot(history)
+```
+
+# Evaluation
+
+```{r}
+
+model_aug <- load_model_hdf5("cats_and_dogs_augmentation.h5")
+
+test_generator <- flow_images_from_directory(
+  test_dir,
+  test_datagen,
+  target_size = c(150, 150),
+  batch_size = 20,
+  class_mode = "binary"
+)
+
+model_aug %>% evaluate_generator(test_generator, steps = 50)
+
 ```

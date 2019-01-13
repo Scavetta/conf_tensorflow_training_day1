@@ -1,0 +1,92 @@
+---
+title: "An RNN on the IMDB data set"
+author: "Rick Scavetta"
+---
+
+## IMDB in an RNN
+
+Let's take a look at an RNN on the IMDB dataset. First with only 20 words.
+
+```{r}
+
+library(keras)
+
+# Number of most common words to consider as features
+max_features <- 10000
+
+# Loads the data as lists of integers
+c(c(input_train_original, y_train), c(input_test_original, y_test)) %<-% dataset_imdb(num_words = max_features)
+
+# Cut off the text after 20 words (i.e. among the max_features most common words)
+maxlen <- 20
+batch_size <- 32
+
+# Turns the lists of integers into a 2D integer tensor of shape (samples, maxlen)
+input_train <- pad_sequences(input_train_original, maxlen = maxlen)
+input_test <- pad_sequences(input_test_original, maxlen = maxlen)
+```
+
+Let's train a simple recurrent network using a `layer_embedding()` and `layer_simple_rnn()`.
+
+```{r, echo=TRUE, results='hide'}
+model <- keras_model_sequential() %>%
+  layer_embedding(input_dim = max_features, output_dim = 32) %>%
+  layer_simple_rnn(units = 32) %>%
+  layer_dense(units = 1, activation = "sigmoid")
+
+model %>% compile(
+  optimizer = "rmsprop",
+  loss = "binary_crossentropy",
+  metrics = c("acc")
+)
+
+historyRNN_small <- model %>% fit(
+  input_train, y_train,
+  epochs = 10,
+  batch_size = 128,
+  validation_split = 0.2
+)
+```
+
+
+```{r}
+plot(historyRNN_small)
+```
+
+Can we do better by increasing the length of the reviews?
+
+```{r}
+
+# Cut off the text after 500 words (i.e. among the max_features most common words)
+maxlen <- 500
+
+# Turns the lists of integers into a 2D integer tensor of shape (samples, maxlen)
+input_train <- pad_sequences(input_train_original, maxlen = maxlen)
+input_test <- pad_sequences(input_test_original, maxlen = maxlen)
+```
+
+Let's train a simple recurrent network using a `layer_embedding()` and `layer_simple_rnn()`.
+
+```{r, echo=TRUE, results='hide'}
+model <- keras_model_sequential() %>%
+  layer_embedding(input_dim = max_features, output_dim = 32) %>%
+  layer_simple_rnn(units = 32) %>%
+  layer_dense(units = 1, activation = "sigmoid")
+
+model %>% compile(
+  optimizer = "rmsprop",
+  loss = "binary_crossentropy",
+  metrics = c("acc")
+)
+
+historyRNN_large <- model %>% fit(
+  input_train, y_train,
+  epochs = 10,
+  batch_size = 128,
+  validation_split = 0.2
+)
+```
+
+```{r}
+plot(historyRNN_large)
+```

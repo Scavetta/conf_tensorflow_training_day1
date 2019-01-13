@@ -1,5 +1,5 @@
 ---
-title: "Binary Classification with Text: The IMDB Dataset"
+title: "Binary Classification with Text: The Reuter Dataset"
 subtitle: "Scenario 1: One-hot Encoding"
 author: "Rick Scavetta"
 output: html_document
@@ -16,24 +16,12 @@ library(tidyverse)
 
 In this case study, we'll see another classification problem. Here, we're trying to predict one of two classes, i.e. binary. The set up is just like in the Reuters case study, but we have some changes to the netwrok architecture. Two new functions are used: the final activation function, `sigmoid`, and a new loss function, `binary_crossentropy`.
 
-## Install tensorflow 
-
-It's only necessary to run this once. 
-
-```{r install, eval = F}
-# for GPU
-# install_keras(tensorflow = "gpu")
-
-# or CPU:
-# install_keras() # for cpu
-```
-
 # Part 1: Data Preparation
 
 ## Obtain data
 
 ```{r data, warning = FALSE}
-c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_imdb(num_words = 10000)
+c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_Reuter(num_words = 10000)
 ```
 
 ## Examine data:
@@ -113,7 +101,7 @@ which(as.logical(train_data_vec[1,]))
 
 ## Prepare labels:
 
-The `_labels` objects contain the review labels. Each review can only have one *label* (i.e. "sigle-label"), from a total of 2 possible *classes* (i.e. "binary"). `0` == `"negative"`, `1` == `"positive"`.
+The `_labels` objects contain the review labels. Each review can only have one *label* (i.e. "sigle-label"), from a total of 46 possible *classes* (i.e. "multi-class").
 
 ```{r strLabelsPre}
 str(train_labels)
