@@ -34,7 +34,7 @@ Here we'll see some basic ways of working with text, using one-hot encoding.
 
 | Function              | Description                               |
 |:----------------------|:------------------------------------------|
-| `dataset_reuters()`    | Import the Reuters Newswire dataset. |
+| `dataset_reuters()`    | Import the Reuters Newswires dataset. |
 | `dataset_reuters_word_index()`    | Reuters dataset word index. |
 | `to_categorical()` | Vectorize labels for use with softmax and `categorical_crossentropy` loss function. |
 
@@ -43,8 +43,6 @@ Here we'll see some basic ways of working with text, using one-hot encoding.
 For multi-class classification, we previously use `sparse_cateogircal_crossentropy`, here we'll see  `categorical_crossentropy`.
 
 ### Obtain data
-
-In the exercises you'll read text from files, here we'll just use the bil
 
 ```{r data, warning = FALSE}
 c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_reuters(num_words = 10000)
@@ -113,7 +111,7 @@ Now we have a large matrix, where each row is 10000 elements long. Wherever we h
 train_data_vec[1,1:100]
 ```
 
-In one-hot noding, we only get 1s and 0s. The position of the 1s corresponds to the indices above:
+In one-hot encoding, we only get 1s and 0s. The position of the 1s corresponds to the indices above:
 
 ```{r}
 which(as.logical(train_data_vec[1,]))
@@ -121,7 +119,7 @@ which(as.logical(train_data_vec[1,]))
 
 ### Prepare labels:
 
-The `_labels` objects contain the news wire labels. Each newswire can only have one *label* (i.e. "sigle-label"), from a total of 46 possible *classes* (i.e. "multi-class"). The classes are just given numerical values (0 - 45), it doesn't matter what they are actually called, although that information would be helpful in understanding mis-labeling.
+The `_labels` objects contain the news wire labels. Each newswires can only have one *label* (i.e. "single-label"), from a total of 46 possible *classes* (i.e. "multi-class"). The classes are just given numerical values (0 - 45), it doesn't matter what they are actually called, although that information would be helpful in understanding mis-labeling.
 
 ```{r strLabelsPre}
 str(train_labels)
@@ -173,7 +171,7 @@ str(train_labels_vec)
 str(test_labels_vec)
 ```
 
-Notice the similiarity to how we prepared our training data with one-hot encoding, both are sparse matrices. Each row in the training data contains a 1 at the position where that word is present, and in the labels, each row contains a maximum of a single 1, indicating the class. 
+Notice the similarity to how we prepared our training data with one-hot encoding, both are sparse matrices. Each row in the training data contains a 1 at the position where that word is present, and in the labels, each row contains a maximum of a single 1, indicating the class. 
 
 ## Part 2: Define Network
 
@@ -232,7 +230,7 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-The network begins to overfit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
+The network begins to over-fit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
@@ -278,7 +276,7 @@ metrics <- network %>% evaluate(test_data_vec, test_labels_vec)
 metrics
 ```
 
-Our accuracty is `r metrics$acc` and the error rate, i.e. incorrect calling, is `r 1 - metrics$acc`.
+Our accuracy is `r metrics$acc` and the error rate, i.e. incorrect calling, is `r 1 - metrics$acc`.
 
 ### Predictions
 

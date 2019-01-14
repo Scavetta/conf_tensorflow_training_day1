@@ -43,7 +43,7 @@ Basic `keras` functions:
 
 ### Take-home Message
 
-In this case study, we'll perform a regression to predict a continouous response variable from 13 predictor variables. That means we'll use:
+In this case study, we'll perform a regression to predict a continuous response variable from 13 predictor variables. That means we'll use:
 
 - Z-scores normalization for the predictor variables.
 
@@ -118,7 +118,7 @@ summary(test_data)
 
 ### Targets
 
-The targes remain unchanged:
+The targets remain unchanged:
 
 ```{r}
 summary(train_targets)
@@ -133,7 +133,7 @@ summary(test_targets)
 
 ### Define the network as a function
 
-Here, I've hardcoded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
+Here, I've hard-coded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
 
 ```{r defModel}
 network <- keras_model_sequential() %>% 
@@ -160,7 +160,7 @@ where $\hat{y_i}$ is the predicted value, given in our last single-unit layer, a
 
 We need to decide how many epochs to run our model plus the size and the number of the hidden layers.we'll train our model on the training data, then look at its performance on the test data/
 
-`verbose = TRUE`, by defaule, so it prints all the values to the screen. That's fine, but we can also save the results to an object as it trains:
+`verbose = TRUE`, by default, so it prints all the values to the screen. That's fine, but we can also save the results to an object as it trains:
 
 ```{r}
 history <- network %>% 
@@ -237,7 +237,7 @@ The dimensions match what we saw in the summary of the model above.
 sapply(all_weights, dim)
 ```
 
-We can manually use the weights and biases to calculate the result to full understand what the model is doing. Let's see if we can undertand how we went from the firs test instance to the result.
+We can manually use the weights and biases to calculate the result to full understand what the model is doing. Let's see if we can understand how we went from the firs test instance to the result.
 
 ```{r}
 relu <- function(x) {

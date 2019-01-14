@@ -100,7 +100,7 @@ network %>% compile(
 
 In addition to that, I'll define another function for training the model, `run_model`. It takes one argument:
 
-- `epochs = 20` - integer, the numer of training epochs.
+- `epochs = 20` - integer, the number of training epochs.
 
 I won't actually change the number of epochs here. it's provided for your convenience. I've set `verbose = FALSE` to avoid lots of print out.
 

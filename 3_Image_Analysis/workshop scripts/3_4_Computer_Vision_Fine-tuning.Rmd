@@ -22,7 +22,7 @@ Fine-tune pre-trained convnets.
 
 ### Functions in this session:
 
-After freezing large chunks of our convnet, we can choose to unfree specific components.
+After freezing large chunks of our convnet, we can choose to unfreeze specific components.
 
 | Function              | Description                               |
 |:----------------------|:------------------------------------------|
@@ -144,4 +144,4 @@ model %>% evaluate_generator(test_generator, steps = 50)
 
 ```
 
-We should've have stopped training earlier, since the validation loss increases after about 30 epochs. 
+We should have stopped training earlier, since the validation loss increases after about 30 epochs. 

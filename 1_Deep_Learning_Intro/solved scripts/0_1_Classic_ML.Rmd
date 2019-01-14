@@ -85,7 +85,7 @@ data.frame(r = cor(boston[,-14],boston$MEDV)) %>%
   
 ```
 
-In practice we may decide, using criteria such as r, that some variables are more invormative. In this case we'll just take all the variables.
+In practice we may decide, using criteria such as r, that some variables are more informative. In this case we'll just take all the variables.
 
 ### Check Variance
 

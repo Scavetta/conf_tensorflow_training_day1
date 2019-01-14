@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 ### Learning Goals
 
-Now that we've seen how adjusting hyperparameters helps us to avoid over-fitting, let's see how the `tfruns` package helps us to perfom grid search.
+Now that we've seen how adjusting hyperparameters helps us to avoid over-fitting, let's see how the `tfruns` package helps us to perform grid search.
 
 ### Functions in this session:
 
@@ -29,13 +29,13 @@ Functions in the `tfruns` package:
 
 | Function         | Use                                                                                                                                                                        |
 |:-----------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `training_run()` | Run a `keras` model from start to finish contained in a separate script (`*.R`) file. Save the results to the `runs` directory and automaticall view them as an HTML page. |
+| `training_run()` | Run a `keras` model from start to finish contained in a separate script (`*.R`) file. Save the results to the `runs` directory and automatically view them as an HTML page. |
 | `latest_run()`   | Load the latest run in the `runs` directory as an HTML page.                                                                                                               |
 | `view_run()`     | Specify a specific run in the `runs` directory to view as an HTML page.                                                                                                    |
 | `compare_runs()` | Compare two runs contained in the `runs` directory.                                                                                                                        |
-| `flags()`        | Provide separate inputs used in the sourse script for `training_run()`.                                                                                                    |
-| `flag_numeric()` | Specify the actual names and defualt values of inputs.                                                                                                                     |
-| `ls_runs()`      | Summarise the results of all runs in the `runs` directory as a data frame.                                                                                                 |
+| `flags()`        | Provide separate inputs used in the source script for `training_run()`.                                                                                                    |
+| `flag_numeric()` | Specify the actual names and default values of inputs.                                                                                                                     |
+| `ls_runs()`      | Summarize the results of all runs in the `runs` directory as a data frame.                                                                                                 |
  
 ## Install
 
@@ -67,13 +67,13 @@ The metrics and output of each run are automatically captured within a run direc
 
 Note that for Keras and TF Estimator models this data is captured automatically (no changes to your source code are required).
 
-Use `latest_run()` to view the results of the last run (including the path to the run directory which stores all of the run’s output):
+Use `latest_run()` to view the results of the last run (including the path to the run directory which stores all of the run's output):
 
 ```{r}
 latest_run()
 ```
 
-Run directories are by default generated within the "runs" subdirectory of the current working directory, and use a timestamp as the name of the run directory. You can view the report for any given run using the `view_run()` function:
+Run directories are by default generated within the "runs" sub-directory of the current working directory, and use a time-stamp as the name of the run directory. You can view the report for any given run using the `view_run()` function:
 
 ```{r}
 # Enter a run to look at:
@@ -135,13 +135,13 @@ network <- keras_model_sequential() %>%
   layer_dense(units = 1)
 ```
 
-Once we’ve defined flags, we can pass alternate flag values to training_run() as follows:
+Once we've defined flags, we can pass alternate flag values to training_run() as follows:
 
 ```{r}
 training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = 0.2, dropout2 = 0.2))
 ```
 
-You aren’t required to specify all of the flags (any flags excluded will simply use their default value).
+You aren't required to specify all of the flags (any flags excluded will simply use their default value).
 
 Flags make it very straightforward to systematically explore the impact of changes to hyperparameters on model performance. For example we can reiterate over values using a for loop or the `purrr` package functions:
 
@@ -176,7 +176,7 @@ data.frame(dropout1 = seq(0.2, 0.8, 0.2),
 
 ## Analyze
 
-We’ve demonstrated visualizing and comparing one or two runs, however as you accumulate more runs you’ll generally want to analyze and compare runs many runs. You can use the ls_runs() function to yield a data frame with summary information on all of the runs you’ve conducted within a given directory:
+We've demonstrated visualizing and comparing one or two runs, however as you accumulate more runs you'll generally want to analyze and compare runs many runs. You can use the ls_runs() function to yield a data frame with summary information on all of the runs you've conducted within a given directory:
 
 
 ```{r table, echo = FALSE, eval = TRUE}

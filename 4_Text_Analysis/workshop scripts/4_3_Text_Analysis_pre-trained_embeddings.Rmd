@@ -25,7 +25,7 @@ library(tidyverse)
 
 ### Learning Goals
 
-Text analysis using pre-trianed word embeddings, o.e. from GloVe.
+Text analysis using pre-trained word embeddings, o.e. from GloVe.
 
 ### Functions in this session:
 
@@ -40,7 +40,7 @@ Here we'll see some basic ways of working with text, using one-hot encoding.
 
 ## Obtain data
 
-In the exercises you'll read text from files, here we'll just use the bil
+In the exercises you'll read text from files, here we'll just use the build-in examples.
 
 ```{r data, warning = FALSE}
 
@@ -169,9 +169,9 @@ y_val <- labels[validation_indices]
 
 ## GloVe word embeddings
 
-The GloVE pretrained word embeddings are derived from the 2014 English Wikipedia. It can be downloaded at [here](https://nlp.stanford.edu/projects/glove/). The file to look for is `glove.6B.zip` (822MB). In it you'll find  100-dimensional embedding vectors for 400,000 words (or non-word tokens).
+The GloVE pre-trained word embeddings are derived from the 2014 English Wikipedia. It can be downloaded at [here](https://nlp.stanford.edu/projects/glove/). The file to look for is `glove.6B.zip` (822MB). In it you'll find  100-dimensional embedding vectors for 400,000 words (or non-word tokens).
 
-Download and unzip the file (it will just a be a `txt` file) and place it in the _pretrained_ folder.
+Download and unzip the file (it will just a be a `txt` file) and place it in the _pre-trained_ folder.
 
 Here are the commands if you want to do this via the terminal:  
 
@@ -270,7 +270,7 @@ get_layer(model, index = 1) %>%
   freeze_weights()
 ```
 
-Additionally, you'll freeze the weights of the embedding layer, following the same rationale you're already familiar with in the context of pretrained convnet features: when parts of a model are pretrained (like your embedding layer) and parts are randomly initialized (like your classifier), the pretrained parts shouldn't be updated during training, to avoid forgetting  what they already know. The large gradient updates triggered by the randomly initialized layers would be disruptive to the already-learned features.
+Additionally, you'll freeze the weights of the embedding layer, following the same rationale you're already familiar with in the context of pre-trained convnet features: when parts of a model are pre-trained (like your embedding layer) and parts are randomly initialized (like your classifier), the pre-trained parts shouldn't be updated during training, to avoid forgetting  what they already know. The large gradient updates triggered by the randomly initialized layers would be disruptive to the already-learned features.
 
 ### Train and evaluate
 
@@ -299,7 +299,7 @@ Plot the performance over time:
 plot(history)
 ```
 
-The model quickly starts overfitting, unsurprisingly given the small number of training samples. Validation accuracy has high variance for the same reason, but seems to reach the 50s.
+The model quickly starts over-fitting, unsurprisingly given the small number of training samples. Validation accuracy has high variance for the same reason, but seems to reach the 50s.
 
 We can also try to train the same model without loading the pre-trained word embeddings and without freezing the embedding layer. In that case, we would be learning a task-specific embedding of our input tokens, which is generally more powerful than pre-trained word embeddings when lots of data is available. Let's try it:
 
@@ -330,7 +330,7 @@ history <- model %>% fit(
 plot(history)
 ```
 
-Validation accuracy stalls in the low 70s. In this case, pre-trained word embeddings doen't outperform jointly-learned embeddings. If we had a small number of training samples, this would not be the case, pre-trained word embeddings would ourperform the jountly-learned embeddings.
+Validation accuracy stalls in the low 70s. In this case, pre-trained word embeddings doesn't outperform jointly-learned embeddings. If we had a small number of training samples, this would not be the case, pre-trained word embeddings would out-perform the jointly-learned embeddings.
 
 ## Evaluation
 

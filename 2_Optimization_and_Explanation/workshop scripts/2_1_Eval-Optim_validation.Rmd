@@ -26,7 +26,7 @@ library(tidyverse)
 
 ### Learning Goals
 
-Understand how to use a validation set to assess overfitting. We'll look at:
+Understand how to use a validation set to assess over-fitting. We'll look at:
 
 - Simple hold-out validation, and
 - k-fold cross validation
@@ -193,7 +193,7 @@ source("Boston_Z.R")
 
 In contrast to our previous case studies, we're going to call the same model multiple times. So we'll create a function with no arguments that we can call to create our model when ever we want to use it for training. 
 
-Here, I've hardcoded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
+Here, I've hard-coded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
 
 ```{r defModel}
 build_model <- function() {
@@ -314,7 +314,7 @@ ggplot(average_mae_history, aes(x = epoch, y = validation_mae)) +
 
 ```
 
-According to this plot, it seems that validation MAE stops improving significantly after circa 60-80 epochs. Past that point, we start overfitting.
+According to this plot, it seems that validation MAE stops improving significantly after circa 60-80 epochs. Past that point, we start over-fitting.
 
 Once we are done tuning other parameters of our model (besides the number of epochs, we could also adjust the size of the hidden layers), we can train a final "production" model on all of the training data, with the best parameters, then look at its performance on the test data:
 

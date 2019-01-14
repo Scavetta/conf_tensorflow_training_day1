@@ -22,13 +22,11 @@ Look at what actually happens to an image in a convnet and what filters are used
 
 ### Functions in this session:
 
-After freezing large chunks of our convnet, we can choose to unfree specific components.
-
 | Function           | Description                                |
 |:-------------------|:-------------------------------------------|
 | `image_load()`     | Import and resize an image.                |
-| `image_to_array()` | Import and resize an image.                |
-| `array_reshape()`  | Reshape an arry for use with tensorflow.   |
+| `image_to_array()` | Convert image to an array.                 |
+| `array_reshape()`  | Reshape an array for use with tensorflow.  |
 | `as.raster()`      | Convert a matrix to a raster for plotting. |
 | `x$output`         | The output layer of a model `x`.           |
 
@@ -163,7 +161,7 @@ for (i in 1:8) {
 
 ```
 
-Here are some additional visualization functions from the _Deep Lerning with R_ book that you can execute to visualize you filters. We won't go into detail in the workshop. All outputs are save in the working directory.
+Here are some additional visualization functions from the _Deep Learning with R_ book that you can execute to visualize you filters. We won't go into detail in the workshop. All outputs are save in the working directory.
 
 Defining the loss tensor for filter visualization (Listing 5.32)
 

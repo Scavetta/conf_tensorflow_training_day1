@@ -61,7 +61,7 @@ conv_base <- application_vgg16(
 conv_base
 ```
 
-## Extracting features using the pretrained convolutional base
+## Extracting features using the pre-trained convolutional base
 
 ```{r dataGen0}
 

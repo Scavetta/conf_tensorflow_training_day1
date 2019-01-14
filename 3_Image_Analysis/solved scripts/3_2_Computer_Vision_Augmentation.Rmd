@@ -29,7 +29,7 @@ source("dir_cat_dog.R")
 
 ### Learning Goals
 
-Learn how to apply image augmentation to avoid overfitting.
+Learn how to apply image augmentation to avoid over-fitting.
 
 ### Functions in this session:
 
@@ -70,7 +70,7 @@ Using dropout:
 - Four sequential conv and max pooling layers
 - Flatten layer
 - Dropout (new)
-- Densly-connected network
+- Densely-connected network
 - Single binary output
 
 ```{r modelDefine}
@@ -97,7 +97,8 @@ model <- keras_model_sequential() %>%
 
 model %>% compile(
   loss = "binary_crossentropy",
-  optimizer = optimizer_rmsprop(lr = 1e-4), metrics = c("acc")
+  optimizer = optimizer_rmsprop(lr = 1e-4), 
+  metrics = "accuracy"
 )
 
 summary(model)
@@ -169,7 +170,7 @@ datagen <- image_data_generator(
 
 ```
 
-Note that the validation data shouldn’t be augmented!
+Note that the validation data shouldn't be augmented!
 
 ```{r dataGen2}
 

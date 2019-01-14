@@ -1,6 +1,6 @@
 ---
 title: "Evaluation and Optimization"
-subtitle: "Reducing Overfitting"
+subtitle: "Reducing Over-fitting"
 author: "Rick Scavetta"
 output:
   html_document:
@@ -31,7 +31,7 @@ source("Boston_Z.R")
 
 ### Learning Goals
 
-Avoiding overfitting in your model by adjusting hyperparameters, adding regularization and dropout.
+Avoiding over-fitting in your model by adjusting hyperparameters, adding regularization and dropout.
 
 ### Functions in this session:
 
@@ -362,7 +362,7 @@ history_regularization %>%
         legend.key = element_rect(fill = plot_bkg))
 ```
 
-## Medhod 3: Adding dropout
+## Method 3: Adding dropout
 
 ```{r summary_dropout}
 # Dropout

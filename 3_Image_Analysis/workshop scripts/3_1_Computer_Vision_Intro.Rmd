@@ -29,7 +29,7 @@ source("dir_cat_dog.R")
 
 ### Learning Goals
 
-Understand how to set up and train a convolutionan neural network (CNN) for computer vision.
+Understand how to set up and train a convolutional neural network (CNN) for computer vision.
 
 ### Functions in this session:
 
@@ -67,7 +67,7 @@ data.frame(Cats = c(length(list.files(train_cats_dir)),
 
 - Four sequential conv and max pooling layers
 - Flatten layer
-- Densly-connected network
+- Densely-connected network
 - Single binary output
 
 ```{r}

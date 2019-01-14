@@ -121,7 +121,7 @@ plot(history)
 ```
 
 
-The network begins to overfit after four epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
+The network begins to over-fit after four epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
@@ -170,7 +170,7 @@ totalmisses <- sum(predictions != actual)
 totalmisses
 ```
 
-A total of `r totalmisses` mismatches occured.
+A total of `r totalmisses` mismatches occurred.
 
 ### Confusion Matrix
 

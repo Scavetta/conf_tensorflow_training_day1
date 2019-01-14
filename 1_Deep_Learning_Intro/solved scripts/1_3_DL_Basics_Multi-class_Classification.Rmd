@@ -28,7 +28,7 @@ For single-label multi-class classification, we try to predict one of many possi
 
 ### Take-home Message
 
-In this case study, we'll perform a single-label, multi-class classification to predict one of 4 possible outcomes from 13 predictor variables. 4 is an arbitrary value I've choosen for example purposes, of course in reality there can be many more classes.
+In this case study, we'll perform a single-label, multi-class classification to predict one of 4 possible outcomes from 13 predictor variables. 4 is an arbitrary value I've chosen for example purposes, of course in reality there can be many more classes.
 
 We'll use the following functions in our network arguments:
 
@@ -123,7 +123,7 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-The network begins to overfit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
+The network begins to over-fit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
