@@ -1,7 +1,15 @@
 ---
-title: "Computer Vision: Image Augmentation"
+title: "Computer Vision"
+subtitle: "Image Augmentation"
 author: "Rick Scavetta"
-output: html_document
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
@@ -15,9 +23,9 @@ library(tidyverse)
 source("dir_cat_dog.R")
 ```
 
-# Part 1: Data Preparation
+# {.tabset .tabset-fade .tabset-pills}
 
-## Examine data:
+## Data
 
 ```{r dataGet}
 
@@ -73,7 +81,7 @@ summary(model)
 
 ```
 
-# Data Augmentation
+## Data Augmentation
 
 ```{r dataGen0}
 datagen <- image_data_generator(
@@ -162,7 +170,7 @@ validation_generator <- flow_images_from_directory(
 
 ```
 
-## Train model:
+## Train
 
 This will take a long time -- even on a GPU -- so I've saved the model and history after training. You can use that later on for assessing performance.
 
@@ -195,7 +203,7 @@ View history
 plot(history)
 ```
 
-# Evaluation
+## Evaluation
 
 ```{r}
 

@@ -1,7 +1,15 @@
 ---
-title: "Computer Vision: Visualizing Cats and Dogs"
+title: "Computer Vision"
+subtitle: "Visualizing Cats and Dogs"
 author: "Rick Scavetta"
-output: html_document
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
 ---
 
 # Data sources

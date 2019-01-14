@@ -23,7 +23,7 @@ library(randomForest)
 library(kableExtra)
 ```
 
-# Boston Dataset {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Functions & Take-home Message
 

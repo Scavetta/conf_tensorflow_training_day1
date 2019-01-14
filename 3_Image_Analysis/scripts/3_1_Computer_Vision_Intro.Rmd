@@ -23,9 +23,11 @@ library(tidyverse)
 source("dir_cat_dog.R")
 ```
 
-# Part 1: Data Preparation
+# {.tabset .tabset-fade .tabset-pills}
 
-## Examine data:
+## Data
+
+### Examine data:
 
 ```{r strImagesPre}
 
@@ -40,7 +42,7 @@ data.frame(Cats = c(length(list.files(train_cats_dir)),
 
 ```
 
-## Define and compile model
+## Define Network
 
 - Four sequential conv and max pooling layers
 - Flatten layer
@@ -117,7 +119,7 @@ str(batch)
 
 ```
 
-## Train the model
+## Train
 
 ```{r modelTrain}
 
@@ -137,13 +139,13 @@ View history
 plot(history)
 ```
 
-# Save the model
+## Save the model
 
 ```{r modelSave eval = FALSE}
 model %>% save_model_hdf5("cats_and_dogs_small_convnet.h5")
 ```
 
-# Evaluation
+## Evaluation
 
 ```{r}
 
@@ -160,4 +162,3 @@ test_generator <- flow_images_from_directory(
 model_conv %>% evaluate_generator(test_generator, steps = 50)
 
 ```
-

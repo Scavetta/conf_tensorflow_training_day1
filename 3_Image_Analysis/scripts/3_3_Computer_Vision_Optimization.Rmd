@@ -1,10 +1,19 @@
 ---
-title: "Computer Vision: Optimization"
+title: "Computer Vision"
+subtitle: "Optimization"
 author: "Rick Scavetta"
-output: html_document
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
 ---
 
-# Data sources
+# {.tabset .tabset-fade .tabset-pills}
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
@@ -12,12 +21,16 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 # Initialize package
 library(keras)
 library(tidyverse)
+```
 
+## Data sources
+
+```{r}
 # define the directories:
 source("dir_cat_dog.R")
 ```
 
-# Obtain a pre-trained convnet base
+## Obtain a pre-trained convnet base
 
 ```{r getConv}
 conv_base <- application_vgg16(
@@ -31,7 +44,7 @@ conv_base <- application_vgg16(
 conv_base
 ```
 
-# Extracting features using the pretrained convolutional base
+## Extracting features using the pretrained convolutional base
 
 ```{r dataGen0}
 
@@ -72,7 +85,7 @@ test <- extract_features(test_dir, 1000)
 
 ```
 
-# Reshape features
+## Reshape features
 
 ```{r reshape}
 reshape_features <- function(features) {
@@ -83,7 +96,7 @@ validation$features <- reshape_features(validation$features)
 test$features <- reshape_features(test$features)
 ```
 
-# Define model
+## Define model
 
 Here we only need the densely connected classifier
 
@@ -117,13 +130,17 @@ history1 <- model %>% fit(
 
 ```
 
-# Plot results:
+Plot results
 
 ```{r hist1}
 plot(history1)
 ```
 
-# Combining a densely-connected neural network with the convolutional base
+## Combining & Freezing
+
+### Combine layers
+
+Combining a densely-connected neural network with the convolutional base
 
 ```{r convModel}
 
@@ -137,7 +154,7 @@ model
 
 ```
 
-## Freezing
+### Freezing
 
 ```{r freezeParam}
 cat(length(model$trainable_weights), " trainable weights before freezing.\n")
@@ -148,9 +165,9 @@ cat(length(model$trainable_weights), " trainable weights before freezing.\n")
 
 ```
 
-# Training the model end-to-end with a frozen convolutional base
+## Training
 
-Alright, now for the real, full model. This will take a bit of time, so I've saved the results for you.
+This time we train the model end-to-end with a frozen convolutional base. This will take a bit of time, so I've saved the results for you.
 
 ```{r datagen1, eval = FALSE}
 
@@ -200,7 +217,7 @@ history_vgg16 <- model %>% fit_generator(
 
 ```
 
-# Save history and model
+Save history and model
 
 ```{r eval = FALSE}
 save(history_vgg16, file = "history_vgg16.RData")
@@ -209,8 +226,7 @@ model %>% save_model_hdf5("cats_and_dogs_vgg16.h5")
 
 ```
 
-
-# View history
+View history
 
 ```{r hist2s}
 load("history_vgg16.RData")
@@ -218,7 +234,7 @@ load("history_vgg16.RData")
 plot(history_vgg16)
 ```
 
-# Evaluation
+## Evaluation
 
 ```{r}
 # Execute this in the terminal to download the model:
