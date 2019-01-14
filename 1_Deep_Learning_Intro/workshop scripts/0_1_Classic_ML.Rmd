@@ -1,0 +1,214 @@
+---
+title: "The Boston House Price Dataset"
+subtitle: "Classic Machine Learning Approaches"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+library(caret)
+library(randomForest)
+library(kableExtra)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Introduction
+
+Although this workshop focuses on deep learning, I want to put it into context with some methods that you should already be familiar with.
+
+In this script, we'll also get familiar with the Boston Housing Price dataset.
+
+## Load data
+
+For this example, I'm going to use the exact same data that we'll see later in deep learning so we can directly compare the results.
+
+```{r}
+# Read the dataset
+boston <- read.csv("../data/boston_keras.csv")
+```
+
+We have 14 variables. The first 13 are the predictor variables and that last, `MEDV` is the response
+
+| Variable  | Description                                                               |
+|:----------|:--------------------------------------------------------------------------|
+| `CRIM`    | Per capita crime rate by town                                             |
+| `ZN`      | Proportion of residential land zoned for lots over 25,000 sq.ft           |
+| `INDUS`   | Proportion of non-retail business acres per town                          |
+| `CHAS`    | Charles River dummy variable (1 if tract bounds river; else 0)            |
+| `NOX`     | Nitric oxides concentration (parts per 10 million)                        |
+| `RM`      | Average number of rooms per dwelling                                      |
+| `AGE`     | Proportion of owner-occupied units built prior to 1940                    |
+| `DIS`     | Weighted distances to five Boston employment centres                      |
+| `RAD`     | Index of accessibility to radial highways                                 |
+| `TAX`     | Full-value property-tax rate per $10,000                                  |
+| `PTRATIO` | Pupil-teacher ratio by town                                               |
+| `B`       | $1000 * (Bk - 0.63)^2$ where $Bk$ is the proportion of blacks by town |
+| `LSTAT`   | % lower status of the population                                          |
+| `MEDV`    | Median value of owner-occupied homes in $1000’s                           |
+
+To give you an idea of the range of the data:
+
+```{r}
+summary(boston)
+```
+
+## ML preparation
+
+### Check Correlation
+
+Each predictor variable against the response variable:
+
+```{r echo = FALSE}
+
+data.frame(r = cor(boston[,-14],boston$MEDV)) %>% 
+  rownames_to_column() %>% 
+  rename(variable = rowname) %>% 
+  arrange(r) %>% 
+  mutate(variable = as_factor(variable)) %>% 
+  ggplot(aes(r, variable)) +
+  geom_vline(xintercept = 0, col = "dark red", linetype = 2) +
+  geom_point() +
+  scale_x_continuous("r", limits = c(-1,1), expand = c(0,0))
+  
+```
+
+In practice we may decide, using criteria such as r, that some variables are more invormative. In this case we'll just take all the variables.
+
+### Check Variance
+
+Assess presence of zero of near-zero variance variables:
+
+```{r}
+nzv <- nearZeroVar(boston, saveMetrics = TRUE)
+```
+
+There are `r sum(nzv$nzv)` zero variance of near-zero variance variables.
+
+### Create test set
+
+This split reflects what we'll see in `keras`.
+
+```{r}
+# as per the keras data set:
+index <- 1:404
+
+training <- boston[index,]
+testing <- boston[-index,]
+```
+
+### Z-score Scaling
+
+We'll perform a Z-score transformation on each predictor variable, after splitting, as we will do later in deep learning. All variables will have a mean of 0.
+
+```{r}
+# Using dplyr to keep data frame structure:
+training %>% 
+  mutate_at(vars(-MEDV), scale) -> training
+
+testing %>% 
+  mutate_at(vars(-MEDV), scale) -> testing
+```
+
+## GLM
+
+Linear models take the form:
+
+$$Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \ldots + \beta_p X_{ip} + \epsilon_i$$. The coefficients are:
+
+Since we are assuming normal distributions, `glm()` and `lm()` perform the same. The coefficients:
+
+```{r}
+fit_lm <- lm(MEDV~.,data = training)
+```
+
+
+```{r echo = FALSE}
+data.frame(coef = round(fit_lm$coefficients,2)) %>% 
+  rownames_to_column() %>% 
+  rename(variable = rowname) %>% 
+  filter(variable != "(Intercept)") %>%  
+  arrange(coef) %>% 
+  mutate(variable = as_factor(variable)) %>% 
+  ggplot(aes(coef, variable)) +
+  geom_vline(xintercept = 0, col = "dark red", linetype = 2) +
+  geom_point() +
+  scale_x_continuous("r", limits = c(-4.2,4.2), expand = c(0,0))
+```
+
+
+```{r}
+#predict on test set
+pred_lm <- predict(fit_lm, newdata = testing)
+
+MAE_lm <- sum(abs(pred_lm - testing$MEDV))/102
+```
+
+Our measure for the error will be the mean absolute error (MAE):
+
+$$\mathrm{MAE} = \frac{\sum_{i=1}^n\left| y_i-\hat{y_i}\right|}{n} = \frac{\sum_{i=1}^n\left| e_i\right|}{n}$$
+
+where $\hat{y_i}$ is the predicted value and $y_i$ is the actual value, the label. We'll see this again in deep learning and it's a more intuitive unit than the root-mean-square error (RMSE), which is also common. Recall that the RMSE is just the square of the the MSE:
+
+$$\operatorname{MSE} = \frac{\sum_{i=1}^n(y_i-\hat{y_i})^2}{n} = \frac{\sum_{i=1}^n{e_i^2}}{n}$$
+
+$$\operatorname{RMSE} = \sqrt{MSE}$$
+
+the MSE will also make a reappearance in deep learning as our loss function.
+
+The MAE, using the linear model, is `r MAE_lm`. In dollar amounts, we are off by $`r round(MAE_lm * 1000, 2)`.
+
+## Random Forest
+
+Let's give it another go using a random forest.
+
+```{r}
+fit_rf <- randomForest(MEDV ~ ., data = training)
+
+pred_rf <- predict(fit_rf, testing)
+
+MAE_rf <- sum(abs(pred_rf - testing$MEDV))/102
+
+```
+
+In this case the MAE is `r MAE_rf`. In dollar amounts, we are off by $`r round(MAE_rf * 1000)`, much better than before.
+
+## Visualizing output
+
+Let's put this into context. The predictions for each model are compared to the actual data. The diagonal line is 1:1 equivalency.
+
+```{r echo = FALSE}
+data.frame(Actual = testing$MEDV,
+           `GLM` = pred_lm,
+           `Random Forest` = pred_rf) %>% 
+  gather(Measure, Prediction, -Actual) %>% 
+  ggplot(aes(Actual, Prediction)) +
+  geom_point(shape = 16, alpha = 0.65) +
+  geom_abline(slope = 1, intercept = 0, col = "dark red") +
+  coord_fixed() +
+  facet_grid(. ~ Measure) +
+  theme_classic() +
+  theme(axis.text = element_text(colour = "black"),
+        strip.background = element_rect(colour = NA, fill = "gray92"))
+```
+
+```{r, eval = FALSE, echo = FALSE}
+data.frame(Actual = testing$MEDV,
+           `GLM` = pred_lm,
+           `Random Forest` = pred_rf) %>% 
+  rio::export("ClassicML.csv")
+```
+
+The results are saved in the `ClassicML.csv` file so that we can compare them with the results from deep learning.

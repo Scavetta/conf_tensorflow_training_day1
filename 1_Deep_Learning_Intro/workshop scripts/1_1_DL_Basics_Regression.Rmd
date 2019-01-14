@@ -1,0 +1,273 @@
+---
+title: "1.1 Introduction to Deep Learning"
+subtitle: "Regression"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = FALSE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Functions & Take-home Message
+
+### Functions in this session:
+
+Basic `keras` functions:
+
+| Function                   | Description                                                 |
+|:---------------------------|:------------------------------------------------------------| 
+| `%<-%`                     | Assign-elements-from-a-list operator                        |
+| `dataset_boston_housing()` | Built-in Boston House Price dataset.                        |
+| `keras_model_sequential()` | Keras network (model) composed of a linear stack of layers. |
+| `layer_dense()`	           | Add a densely-connected NN layer to an output.              |
+| `compile()`                | Configure a Keras model for training.                       |
+| `fit()`                    | Train a Keras model.                                        |
+| `predict()`                | Apply a trained model to test data.                         |
+| `evaluate()`               | Calculate model evaluation metrics on test data             | 
+| `save_model_hdf5()`        | Save a model.                                               |
+| `load_model_hdf5()`        | Load a model.                                               |
+
+### Take-home Message
+
+In this case study, we'll perform a regression to predict a continouous response variable from 13 predictor variables. That means we'll use:
+
+- Z-scores normalization for the predictor variables.
+
+Plus the following functions in our network
+
+| Name                           | Function           |
+|:-------------------------------|:-------------------|
+| Loss function                  | `mse`              |
+| Metric                         | `mae`              |
+| last-layer activation function | none (i.e. scalar) |
+
+### Install tensorflow 
+
+We've already done this for you. On your own machines you'll have to run this once, after you have installed the keras package
+
+```{r install, eval = FALSE}
+install.packages("keras")
+
+# for GPU
+# install_keras(tensorflow = "gpu")
+
+# or CPU:
+install_keras() # for cpu
+```
+
+## Part 1: Data Preparation
+
+### Obtain data
+
+```{r data, warning = FALSE}
+c(c(train_data, train_targets), c(test_data, test_targets)) %<-% dataset_boston_housing()
+```
+
+### Examine data:
+
+Our predictor variables:
+
+```{r strDataPre}
+str(train_data)
+str(test_data)
+```
+
+The target, response variable:
+
+```{r strTargets}
+str(train_targets)
+```
+
+### Prepare the data:
+
+Convert z-scores:
+
+$$z_i=\frac{x_i-\bar{x}}{s}$$
+```{r zScores, cache = T}
+# parameters for Scaling:
+mean <- colMeans(train_data) # mean of each column
+std <- apply(train_data, 2, sd) # stdev of each column
+
+# Calculate feature-wise (within-variable) z-scores: (x - mean)/std
+train_data <- scale(train_data, center = mean, scale = std)
+test_data <- scale(test_data, center = mean, scale = std)
+
+```
+
+```{r}
+summary(train_data)
+```
+
+```{r}
+summary(test_data)
+```
+
+### Targets
+
+The targes remain unchanged:
+
+```{r}
+summary(train_targets)
+```
+
+```{r}
+summary(test_targets)
+```
+
+
+## Part 2: Define Network
+
+### Define the network as a function
+
+Here, I've hardcoded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
+
+```{r defModel}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 1) 
+
+network %>% compile(
+  optimizer = "rmsprop", 
+  loss = "mse", 
+  metrics = "mae"
+)
+```
+
+Note two key functions that I mentioned earlier. The mean squared error:
+
+$$\operatorname{MSE} = \frac{\sum_{i=1}^n(y_i-\hat{y_i})^2}{n} = \frac{\sum_{i=1}^n{e_i^2}}{n}$$
+and the mean absolute error (MAE):
+
+$$\mathrm{MAE} = \frac{\sum_{i=1}^n\left| y_i-\hat{y_i}\right|}{n} = \frac{\sum_{i=1}^n\left| e_i\right|}{n}$$
+where $\hat{y_i}$ is the predicted value, given in our last single-unit layer, and $y_i$ is the actual value, the target.
+
+## Training
+
+We need to decide how many epochs to run our model plus the size and the number of the hidden layers.we'll train our model on the training data, then look at its performance on the test data/
+
+`verbose = TRUE`, by defaule, so it prints all the values to the screen. That's fine, but we can also save the results to an object as it trains:
+
+```{r}
+history <- network %>% 
+  fit(train_data, 
+      train_targets,
+      epochs = 100, 
+      batch_size = 16)
+
+```
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+## Model Evaluation:
+
+```{r runZ_2}
+result <- network %>% 
+  evaluate(test_data, test_targets)
+```
+
+### Results:
+
+```{r runZ_3}
+MAE_dl <- result$mean_absolute_error
+```
+
+
+```{r resultsZ}
+result
+```
+
+The MAE, using deep learning, is `r MAE_dl`. In dollar amounts, we are still off by $`r round(MAE_dl * 1000, 2)`. That's much better than with the LM, but actually not really an improvement on a random forest.
+
+To get the actual predictions we can use the `predict()` function:
+
+```{r}
+network %>%
+  predict(test_data) %>% 
+  head()
+```
+
+
+```{r echo = FALSE}
+read.csv("../data/ClassicML.csv") %>% 
+  mutate(`Deep Learning` = predict(network, test_data)[,1]) %>% 
+  gather(Measure, Prediction, -Actual) %>% 
+  ggplot(aes(Actual, Prediction)) +
+  geom_point(shape = 16, alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, col = "dark red") +
+  coord_fixed(xlim = c(0,50), ylim = c(0,50), expand = 0, clip = "off") +
+  facet_grid(. ~ Measure) +
+  theme_classic() +
+  theme(axis.text = element_text(colour = "black"),
+        strip.background = element_rect(colour = NA, fill = "gray92"))
+
+```
+
+
+## Examine your model
+
+Training a model simply means that we've defined the weights and bias matrices for each layer. We have access to all values in the model, so let's take a look and understand exactly what's happening
+
+```{r}
+all_weights <- get_weights(network)
+str(all_weights)
+```
+
+The dimensions match what we saw in the summary of the model above.
+
+```{r}
+sapply(all_weights, dim)
+```
+
+We can manually use the weights and biases to calculate the result to full understand what the model is doing. Let's see if we can undertand how we went from the firs test instance to the result.
+
+```{r}
+relu <- function(x) {
+  x[x < 0] <- 0
+  return(x)
+}
+
+# First layer results
+relu(pracma::dot(test_data[1,], all_weights[[1]]) + all_weights[[2]]) -> output_layer_1
+
+# Second layer results
+relu(pracma::dot(t(output_layer_1), all_weights[[3]]) + all_weights[[4]]) -> output_layer_2
+
+# Thrid layer results
+pracma::dot(t(output_layer_2), all_weights[[5]]) + all_weights[[6]] 
+```
+
+This matches the prediction above. Now that we can see what is actually happening. can you see why I began with discussing GLMs?
+
+### Saving and loading models
+
+We can save these values using:
+
+```{r eval = FALSE}
+network %>% 
+  save_model_hdf5("Boston_Regression_Model.h5")
+```
+
+If we want to open a saved model, we can use:
+
+```{r eval = FALSE}
+model <- load_model_hdf5("Boston_Regression_Model.h5")
+```

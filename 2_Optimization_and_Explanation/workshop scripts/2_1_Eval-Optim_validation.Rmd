@@ -1,0 +1,361 @@
+---
+title: "Evaluation and Optimization"
+subtitle: "The validation set"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Learning Goals & Functions
+
+### Learning Goals
+
+Understand how to use a validation set to assess overfitting. We'll look at:
+
+- Simple hold-out validation, and
+- k-fold cross validation
+
+We'll perform k-fold cross-validation manually since there is not standard function.
+
+### Functions in this session:
+
+Basic `keras` functions as we've seen before.
+
+Inside the `fit()` function, there are two arguments we can use to define a simple validation set: 
+
+| Argument           | Use                                                                                                                                               |
+|:-------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `validation_split` | The fraction, [0, 1], of the training data that will be used for validation, selected from the _last_ samples.                                    |
+| `validation_data`  | Data on which to evaluate the loss and any model metrics at the end of each epoch, called as a list `(x_val, y_val)`. Overrides validation_split. |
+
+## Part 1: Data Preparation
+
+### Obtain data
+
+We already examined the data in the previous script. Here, we'll just prepare the data as before, for use with binary crossentropy. If you're unfamiliar with what's happening here, please refer to the main script. 
+
+```{r}
+source("Boston_Z.R")
+```
+
+## Part 2: Automatic Hold-out
+
+Automatically take X% of the training for validation.
+
+```{r}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile as before
+network %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+history_split <-  network %>% 
+  fit(
+    train_data,
+    train_targets,
+    epochs = 120,
+    batch_size = 1,
+    validation_split = 0.25,
+    verbose = FALSE
+  )
+```
+
+```{r}
+plot(history_split)
+```
+
+This looks troubling... can you see why?
+
+### Examine structure
+
+```{r message = FALSE}
+# install.packages("tabplot")
+library(tabplot)
+tableplot(as.data.frame(train_data), nBins = 404, numMode = "ml")
+```
+
+If we're not sure, we can manually shuffle the data beforehand:
+
+```{r}
+# Shuffle
+train_data <- train_data[sample(1:nrow(train_data)),]
+
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile as before
+network %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+history_split_shuffle <-  network %>% 
+  fit(
+    train_data,
+    train_targets,
+    epochs = 120,
+    batch_size = 1,
+    validation_split = 0.25,
+    verbose = FALSE
+  )
+```
+
+```{r}
+plot(history_split_shuffle)
+```
+
+
+## Part 3: Manual Hold-out
+
+Specify validation set manually
+
+```{r data, warning = FALSE, echo = FALSE, context = "data", cache = TRUE}
+
+# Use random sampling:
+set.seed(136)
+index <- sample(1:nrow(train_data), 0.25*nrow(train_data))
+
+val_data <- train_data[index,]
+train_data <- train_data[-index,]
+
+val_targets <- train_targets[index]
+train_targets <- train_targets[-index]
+```
+
+
+```{r}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 1)
+
+# Compile as before
+network %>% 
+  compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+
+history_data <-  network %>% 
+  fit(
+    train_data,
+    train_targets,
+    epochs = 120,
+    batch_size = 1,
+      validation_data = list(val_data, val_targets),
+      verbose = FALSE
+  )
+```
+
+
+```{r}
+plot(history_data)
+```
+
+## Part 3: k-fold Cross-validation
+
+First, let's make sure we have the original data, without manually splitting off a validation set:
+
+```{r}
+source("Boston_Z.R")
+```
+
+
+### Define the network as a function
+
+In contrast to our previous case studies, we're going to call the same model multiple times. So we'll create a function with no arguments that we can call to create our model when ever we want to use it for training. 
+
+Here, I've hardcoded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
+
+```{r defModel}
+build_model <- function() {
+  network <- keras_model_sequential() %>% 
+    layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+    layer_dense(units = 64, activation = "relu") %>% 
+    layer_dense(units = 1) 
+  
+  network %>% compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = "mae"
+  )
+}
+```
+
+### Define k-fold validation:
+
+```{r setkFold, echo = TRUE, results = 'hide'}
+k <- 4 # four groups
+indices <- sample(1:nrow(train_data)) # randomize the training set before splitting for k-fold cross validation:
+folds <- cut(indices, breaks = k, labels = FALSE) # divide the ordered indices into k intervals, labelled 1:k.
+```
+
+```{r kfold100, cache = T}
+num_epochs <- 40
+all_scores <- c() # An empty vector to store the results from evaluation
+
+for (i in 1:k) {
+  cat("processing fold #", i, "\n")
+  # Prepare the validation data: data from partition # k
+  val_indices <- which(folds == i, arr.ind = TRUE) 
+  
+  # validation set: the ith partition
+  val_data <- train_data[val_indices,]
+  val_targets <- train_targets[val_indices]
+  
+  # Training set: all other partitions
+  partial_train_data <- train_data[-val_indices,]
+  partial_train_targets <- train_targets[-val_indices]
+  
+  # Call our model function (see above)
+  network <- build_model()
+  
+  # summary(model)
+  # Train the model (in silent mode, verbose=0)
+  network %>% fit(partial_train_data,
+                  partial_train_targets,
+                  epochs = num_epochs,
+                  batch_size = 1,
+                  verbose = FALSE)
+                
+  # Evaluate the model on the validation data
+  results <- network %>% evaluate(val_data, val_targets, verbose = 0)
+  all_scores <- c(all_scores, results$mean_absolute_error)
+}  
+```
+
+We get 4 MAE values, `r all_scores`, and they seem to be in the range we expected. 
+
+### Training for 250 epochs
+
+Let's try training the network for a bit longer: 500 epochs. To keep a record of how well the model did at each epoch, we will modify our training loop to save the per-epoch validation score log:
+
+```{r clearMem}
+# Some memory clean-up
+K <- backend()
+K$clear_session()
+```
+
+Train our models, this is a pretty time-consuming task!
+
+```{r kfold500, echo = T, results = 'hide', cache = T}
+num_epochs <- 250
+all_mae_histories <- NULL # an empty object to cumulatively store the model metrics
+
+for (i in 1:k) {
+  cat("processing fold #", i, "\n")
+  
+  # Prepare the validation data: data from partition # k
+  val_indices <- which(folds == i, arr.ind = TRUE)
+  val_data <- train_data[val_indices,]
+  val_targets <- train_targets[val_indices]
+  
+  # Prepare the training data: data from all other partitions
+  partial_train_data <- train_data[-val_indices,]
+  partial_train_targets <- train_targets[-val_indices]
+  
+  # Build the Keras model (already compiled)
+  model <- build_model()
+  
+  # Train the model (in silent mode, verbose=0)
+  history <- model %>% fit(partial_train_data, 
+                           partial_train_targets,
+                           validation_data = list(val_data, val_targets),
+                           epochs = num_epochs, 
+                           batch_size = 1, 
+                           verbose = FALSE
+  )
+  mae_history <- history$metrics$val_mean_absolute_error
+  all_mae_histories <- rbind(all_mae_histories, mae_history)
+}
+```
+
+Instead of plotting the validation loss and looking at where it starts to increase, we can also look at the validation MAE and find out at what point it stops improving. For this, we'll calculate and plot the average per-epoch MAE score for all folds:
+
+```{r plot1}
+average_mae_history <- data.frame(
+  epoch = seq(1:ncol(all_mae_histories)),
+  validation_mae = apply(all_mae_histories, 2, mean)
+)
+
+ggplot(average_mae_history, aes(x = epoch, y = validation_mae)) + 
+  geom_line(alpha = 0.3) +
+  geom_point(shape = 16, alpha = 0.3) + 
+  geom_smooth(method = 'loess', se = FALSE, col = "dark red", span = 0.4) +
+  coord_cartesian(ylim = c(2,3))
+
+```
+
+According to this plot, it seems that validation MAE stops improving significantly after circa 60-80 epochs. Past that point, we start overfitting.
+
+Once we are done tuning other parameters of our model (besides the number of epochs, we could also adjust the size of the hidden layers), we can train a final "production" model on all of the training data, with the best parameters, then look at its performance on the test data:
+
+```{r runZ, echo = F, results = 'hide', cache = T}
+# Get a fresh, compiled model.
+model <- build_model()
+
+# Train it on the entirety of the data.
+model %>% fit(train_data, 
+              train_targets,
+              epochs = 60, 
+              batch_size = 1, 
+              verbose = FALSE)
+
+result <- model %>% evaluate(test_data, test_targets)
+
+MAE_dl_kfold <- result$mean_absolute_error
+```
+
+```{r resultsZ}
+result
+```
+
+The MAE when using k-fold cross-validation is `r MAE_dl_kfold`. We are still off by about $`r round(MAE_dl_kfold * 1000, 2)`. This is what we had previously, but at least now we have a good idea about why we choose this set up.
+
+Just our of curiosity, let's imagine we thought it was a good idea to just keep on training and training for hundreds of epochs. What would happen?
+
+```{r runTooLong, echo = F, results = 'hide', cache = T}
+# Get a fresh, compiled model.
+model <- build_model()
+
+# Train it on the entirety of the data.
+model %>% fit(train_data, 
+              train_targets,
+              epochs = 500, 
+              batch_size = 1, 
+              verbose = FALSE)
+
+result <- model %>% evaluate(test_data, test_targets)
+
+MAE_dl_too_long <- result$mean_absolute_error
+```
+
+Now, our MAE is `r MAE_dl_too_long `, which means we're off by about $`r round(MAE_dl_too_long * 1000, 2)`.

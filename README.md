@@ -36,19 +36,20 @@
 
 - The Boston Housing Price dataset for regression, single-label, multi-class classification and binary classificaiton.
 
-#### DIY Exercise:
+#### DIY Exercise Datasets:
 
 - The UCI [Abalone](http://archive.ics.uci.edu/ml/datasets/Abalone) data-set, predict ring number as a categorical or continuous variable.
 
+#### Files
+
+| Markdown File                                | Description                                                |
+|:---------------------------------------------|:-----------------------------------------------------------|
+| 0_1_Classic_ML.Rmd                           | Some context from classical Machine Learning               |
+| 1_1_DL_Basics_Regression.Rmd                 | Deep Learning for Regression                               |
+| 1_2_DL_Basics_Binary_Classification.Rmd      | Deep Learning for Binary Classification                    |
+| 1_3_DL_Basics_Multi-class_Classification.Rmd | Deep Learning for Single-label, Multi-class Classification |
+
 ***
-
-
-| Description | Markdown | HTML
-| ------------- | ------------- | ------------- |
-| 0.0: Classic ML | [R Markdown (Rmd)](/1_Deep_Learning_Intro/scripts/1_0_Classic_ML.Rmd) | [Notebook (HTML)](/1_Deep_Learning_Intro/scripts/1_0_Classic_ML.html) |
-
-
-
 
 ### Session 2: Building better models: Evaluating and Optimizing Models
 
@@ -62,6 +63,15 @@
 #### DIY Exercise:
 
 - The UCI [Abalone](http://archive.ics.uci.edu/ml/datasets/Abalone) data-set, predict ring number as a categorical or continuous variable.
+
+| Markdown File                  | Description                |
+|:-------------------------------|:---------------------------| 
+| 2_1_Eval-Optim_validation.Rmd  | Appling validation         |
+| 2_2_Eval-Optim_Overfitting.Rmd | Avoiding over-fitting      |
+| 2_3_Eval-Optim_Capacity.Rmd    | Changing capacity          |
+| 2_4_Eval-Optim_tfruns.Rmd      | Using the `tfruns` package |
+
+***
 
 ### Session 3: Image processing
 
@@ -80,6 +90,19 @@
 #### DIY Exercise:
 
 - Malaria histology images -- binary classification.
+- The Labradoodle versus fried chicken image dataset.
+
+#### Files
+
+| Markdown File                        | Description                                     |
+|:-------------------------------------|:------------------------------------------------|
+| 3_1_Computer_Vision_Intro.Rmd        | Working with images                             |
+| 3_2_Computer_Vision_Augmentation.Rmd | Using Image Augmentation to reduce over-fitting |
+| 3_3_Computer_Vision_Optimization.Rmd | Using pre-trained Convnets                      |
+| 3_4_Computer_Vision_Fine-tuning.Rmd  | Optimizing pre-rained Convnets                  |
+| 3_5_Computer_Vision_Visualising.Rmd  | Visualizing layers                              |
+
+***
 
 ### Session 4: Text processing
 
@@ -89,9 +112,19 @@
 
 #### Workshop Dataset:
 
-- The IMDB movie sentiment dataset -- binary classification
+- Reuters Newswire dataset -- single label, multi-class classification with text.
 
 #### DIY Exercise:
 
-- Reuters Newswire dataset -- single label, multi-class classification with text.
+- The IMDB movie sentiment dataset -- binary classification
 
+#### Files
+
+| Markdown File                                | Description                                 |
+|:---------------------------------------------|:--------------------------------------------|
+| 4_1_Text_Analysis_One-Hot.Rmd                | Basic text analysis using one-hot encoding. |
+| 4_2_Text_Analysis_Word-Embeddings.Rmd        | Trainig word embeddings.                    |
+| 4_3_Text_Analysis_pre-trained_embeddings.Rmd | Using pre-trained word embeddings.          |
+| 4_4_Text_Analysis_Simple-RNNs.Rmd            | Understanding RNNs.                         |
+| 4_5_Text_Analysis_RNN-on-Reuters.Rmd         | Applying RNNs.                              |
+| 4_6_Text_Analysis_LSTMs.Rmd                  | Applying LSTMs.                             |

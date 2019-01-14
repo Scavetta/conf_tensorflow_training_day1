@@ -1,0 +1,158 @@
+---
+title: "Reuters -- Single-label, Multi-class Classification with Text"
+subtitle: "Scenario 2: Word Embeddings"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+
+# Initialize package
+# install.packages(keras)
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Learning Goals & Functions
+
+### Learning Goals
+
+Text analysis using our own word embeddings.
+
+### Functions in this session:
+
+Here we'll see some basic ways of working with text, using one-hot encoding.
+
+| Function              | Description                               |
+|:----------------------|:------------------------------------------|
+| `pad_sequences()`    | Make all instances the same length by padding them. |
+| `layer_embedding()`    | Add an embedding layer to a model. |
+
+## Obtain data
+
+### Loading the Reuters data set for use with an embedding layer
+
+Restrict the newswires to the top 10,000 most common words then cut off the reviews after only 20 words to make the situation a bit simpler.
+
+```{r}
+# Number of most common words to consider as features
+max_features <- 10000
+
+# Loads the data as lists of integers
+c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_reuters(num_words = max_features)
+
+# # Cut off the text after 20 words (i.e. among the max_features most common words)
+maxlen <- 20
+
+# Turns the lists of integers into a 2D integer tensor of shape (samples, maxlen)
+train_data <- pad_sequences(train_data, maxlen = maxlen)
+test_data <- pad_sequences(test_data, maxlen = maxlen)
+```
+
+```{r}
+dim(test_data)
+```
+
+## Using an embedding layer
+
+Embedding layer plus classifier on the Reuters dataset
+
+The network will:
+
+1. Learn 8-dimensional embeddings for each of the 10,000 words, 
+2. Turn the input integer sequences (2D integer tensor) into embedded sequences (3D float tensor),
+3. Flatten the tensor to 2D, and
+4. Train a single dense layer on top for classification.
+
+```{r}
+# Part 1 & 2:
+# Specify the maximum input length to the embedding layer so you can later flatten the embedded inputs.
+network <- keras_model_sequential() %>%
+  layer_embedding(input_dim = 10000, 
+                  output_dim = 8,
+                  input_length = maxlen)
+
+# Part 3:
+# After the embedding layer, the activations have shape (samples, maxlen, 8).
+# Flattens the 3D tensor of embeddings into a 2D tensor of shape (samples, maxlen * 8)
+network <- network %>% 
+  layer_flatten()
+
+# Part 4:
+# Adds the classifier on top
+network <- network %>%
+  layer_dense(units = 46, activation = "softmax")
+
+```
+
+Compile the model
+
+```{r}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "sparse_categorical_crossentropy",
+  metrics = "accuracy"
+)
+
+summary(network)
+```
+
+
+Train the model
+
+```{r}
+history <- network %>% fit(
+  train_data, 
+  train_labels,
+  epochs = 100,
+  batch_size = 512,
+  validation_split = 0.2
+)
+```
+
+
+```{r}
+plot(history)
+```
+
+Let's train until 30-40 epochs:
+
+```{r}
+
+network <- keras_model_sequential() %>%
+  layer_embedding(input_dim = 10000, 
+                  output_dim = 8,
+                  input_length = maxlen) %>% 
+  layer_flatten() %>%
+  layer_dense(units = 46, activation = "softmax")
+
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "sparse_categorical_crossentropy",
+  metrics = "accuracy"
+)
+
+history <- network %>% fit(
+  train_data, 
+  train_labels,
+  epochs = 35,
+  batch_size = 512,
+  validation_split = 0.2
+)
+```
+
+```{r}
+# Peak validation accuracy:
+history$metrics$val_acc[35]
+```
+

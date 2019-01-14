@@ -1,0 +1,322 @@
+---
+title: "Reuters -- Single-label, Multi-class Classification with Text"
+subtitle: "Scenario 1: One-hot Encoding"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+
+# Initialize package
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Learning Goals & Functions
+
+### Learning Goals
+
+Text analysis using one-hot encoding
+
+### Functions in this session:
+
+Here we'll see some basic ways of working with text, using one-hot encoding.
+
+| Function              | Description                               |
+|:----------------------|:------------------------------------------|
+| `dataset_reuters()`    | Import the Reuters Newswire dataset. |
+| `dataset_reuters_word_index()`    | Reuters dataset word index. |
+| `to_categorical()` | Vectorize labels for use with softmax and `categorical_crossentropy` loss function. |
+
+## Part 1: Data Preparation
+
+For multi-class classification, we previously use `sparse_cateogircal_crossentropy`, here we'll see  `categorical_crossentropy`.
+
+### Obtain data
+
+In the exercises you'll read text from files, here we'll just use the bil
+
+```{r data, warning = FALSE}
+c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_reuters(num_words = 10000)
+```
+
+### Examine data:
+
+```{r strImagesPre}
+length(train_data)
+length(test_data)
+```
+
+An example of the data
+
+```{r}
+train_data[[1]]
+```
+
+Map values back onto the lexicon which is stored as a named list. Each item in the list is an integer vector of length one. This number corresponds to the position in the word count list and the name of the vector is the actual word. 
+
+```{r}
+dataset_reuters_word_index() %>% 
+  unlist() %>%                      # produce a vector
+  sort() %>%                        # put them in order 
+  names() -> word_index             # take the ordered names
+
+# The indices are offset by 3 since 0, 1, and 2 are reserved 
+# for "padding", "start of sequence", and "unknown"
+library(purrr)
+train_data[[1]] %>% 
+  map(~ ifelse(.x >= 3, word_index[.x - 3], "?")) %>% 
+  as_vector() %>% 
+  cat()
+```
+
+### Prepare the data:
+
+We'll use one-hot encoding:
+
+```{r normImages}
+vectorize_sequences <- function(sequences, dimension = 10000) {
+  # Create a matrix of 0s
+  results <- matrix(0, nrow = length(sequences), ncol = dimension)
+
+  # Populate the matrix with 1s
+  for (i in 1:length(sequences))
+    results[i, sequences[[i]]] <- 1
+  results
+}
+
+train_data_vec <- vectorize_sequences(train_data)
+test_data_vec <- vectorize_sequences(test_data)
+```
+
+Let's look at the first example from the training set. Recall that these are the index positions of the words 
+
+```{r}
+train_example <- sort(unique(train_data[[1]]))
+train_example
+```
+
+Now we have a large matrix, where each row is 10000 elements long. Wherever we have a value in the above data set, the matrix has a 1
+
+```{r}
+# Just the first 100 values in the first entry (row)
+train_data_vec[1,1:100]
+```
+
+In one-hot noding, we only get 1s and 0s. The position of the 1s corresponds to the indices above:
+
+```{r}
+which(as.logical(train_data_vec[1,]))
+```
+
+### Prepare labels:
+
+The `_labels` objects contain the news wire labels. Each newswire can only have one *label* (i.e. "sigle-label"), from a total of 46 possible *classes* (i.e. "multi-class"). The classes are just given numerical values (0 - 45), it doesn't matter what they are actually called, although that information would be helpful in understanding mis-labeling.
+
+```{r strLabelsPre}
+str(train_labels)
+```
+
+Some classes are very common, which we'll see play out in our confusion matrix below 
+
+```{r plotLabelsPre}
+# Note plyr not dplyr here. I'm just using a shortcut
+library(ggplot2)
+train_labels %>% 
+  plyr::count() %>%
+  ggplot(aes(x, freq)) +
+  geom_col()
+```
+
+The distribution of the test and training set should be roughly equivalent, so let's have a look. 
+
+```{r}
+data.frame(x = train_labels) %>% 
+  group_by(x) %>% 
+  summarise(train_freq = 100 * n()/length(train_data)) -> train_labels_df
+
+data.frame(x  = test_labels) %>% 
+  group_by(x) %>% 
+  summarise(train_freq = 100 * n()/length(test_data)) %>% 
+  inner_join(train_labels_df, by="x") %>% 
+  gather(key, value, -x) %>% 
+  ggplot(aes(x, value, fill = key)) +
+  geom_col(position = "dodge") +
+  scale_y_continuous("Percentage", limits = c(0,40), expand = c(0,0)) +
+  scale_x_continuous("Label", breaks = 0:45, expand = c(0,0)) +
+  scale_fill_manual("", labels = c("test","train"), values = c("#AEA5D0", "#54C8B7")) +
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8),
+        axis.line.x = element_blank(),
+        axis.text = element_text(colour = "black"))
+```
+
+We make the format match the output we expect to get from softmax so that we can make a direct comparison.
+
+```{r prepLabels}
+train_labels_vec <- to_categorical(train_labels)
+test_labels_vec <- to_categorical(test_labels)
+```
+
+```{r strLabelsPost}
+str(train_labels_vec)
+str(test_labels_vec)
+```
+
+Notice the similiarity to how we prepared our training data with one-hot encoding, both are sparse matrices. Each row in the training data contains a 1 at the position where that word is present, and in the labels, each row contains a maximum of a single 1, indicating the class. 
+
+## Part 2: Define Network
+
+### Define the network
+
+```{r architecture}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 10000) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 46, activation = "softmax")
+```
+
+### View a summary of the network
+
+```{r summary}
+summary(network)
+```
+
+### Compile
+
+```{r compile}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "categorical_crossentropy",
+  metrics = "accuracy"
+)
+```
+
+## Part 3: Validate our approach
+
+Let's set apart 1,000 samples in our training data to use as a validation set:
+
+```{r}
+index <- 1:1000
+val_data_vec <- train_data_vec[index,]
+train_data_vec <- train_data_vec[-index,]
+val_labels_vec <- train_labels_vec[index,]
+train_labels_vec = train_labels_vec[-index,]
+```
+
+Now let's train our network for 20 epochs:
+
+```{r echo=TRUE, results = "hide", warning = FALSE}
+history <- network %>% fit(
+  train_data_vec,
+  train_labels_vec,
+  epochs = 20,
+  batch_size = 512,
+  validation_data = list(val_data_vec, val_labels_vec)
+)
+```
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+The network begins to overfit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
+
+```{r, echo=TRUE, results='hide'}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = c(10000)) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 46, activation = "softmax")
+  
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "categorical_crossentropy",
+  metrics = c("accuracy")
+)
+history <- network %>% fit(
+  train_data_vec,
+  train_labels_vec,
+  epochs = 9,
+  batch_size = 512,
+  validation_data = list(val_data_vec, val_labels_vec)
+)
+```
+
+In the first session, we saw multi-class classification where the values were encoded as integers. For that purpose we used `sparse_categorical_crossentropy` as the loss function. Here we use softmax as the final layer activation function because we have vectorized the labels.
+
+## Part 4: Check output
+
+Let's return to our original model using the vectorized data:
+
+### Metrics
+
+```{r metrics}
+
+# Recall the original integer data:
+test_labels[1]
+
+# We vectorized it to get 46 values, all zero except 1 where our value is
+# This matches the out put from the softmax function.
+test_labels_vec[1,] 
+
+metrics <- network %>% evaluate(test_data_vec, test_labels_vec)
+```
+
+```{r}
+metrics
+```
+
+Our accuracty is `r metrics$acc` and the error rate, i.e. incorrect calling, is `r 1 - metrics$acc`.
+
+### Predictions
+
+Predict classes will give us the integer values from the test data:
+
+```{r predictions}
+predictions <- network %>% predict_classes(test_data_vec)
+predictions[1:10]
+```
+
+```{r allPredictions}
+actual <- unlist(test_labels)
+totalmisses <- sum(predictions != actual)
+```
+
+This means we have a total of `r totalmisses` misses.
+
+### Confusion Matrix
+
+```{r confusion, echo = F}
+
+data.frame(target = actual,
+           prediction = predictions) %>% 
+  filter(target != prediction) %>% 
+  group_by(target, prediction) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(perc = n/nrow(.)*100) %>% 
+  filter(n > 1) %>% 
+  ggplot(aes(target, prediction, size = n)) +
+  geom_point(shape = 15, col = "#9F92C6") +
+  scale_x_continuous("Actual Target", breaks = 0:45, limits = c(0,45)) +
+  scale_y_continuous("Prediction", breaks = 0:45, limits = c(0,45)) +
+  scale_size_area(breaks = c(2,5,10,15), max_size = 5) +
+  coord_fixed() +
+  ggtitle(paste(totalmisses, "mismatches")) +
+  theme_classic() +
+  theme(rect = element_blank(),
+        axis.line = element_blank(),
+        axis.text = element_text(colour = "black"))
+```

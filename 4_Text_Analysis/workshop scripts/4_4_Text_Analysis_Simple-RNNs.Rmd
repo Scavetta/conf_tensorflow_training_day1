@@ -1,0 +1,171 @@
+---
+title: "The Structure of Simple RNNs"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = FALSE)
+
+# Initialize package
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Learning Goals & Functions
+
+### Learning Goals
+
+Understand basic concept of Recurrent Neural Networks (RNNs).
+
+### Functions in this session:
+
+Here we'll just make some models and explore what an RNN is. 
+
+| Function             | Description                  |
+|:---------------------|:-----------------------------|
+| `layer_simple_rnn()` | Add an RNN layer to a model. |
+
+## Setup
+
+Here is a toy example of an RNN to give an idea of what's happening.
+
+```{r}
+# Number of timesteps in the input sequence
+timesteps <- 100
+
+# Dimensionality of the input feature space
+input_features <- 32
+
+# Dimensionality of the output feature space
+output_features <- 64
+
+random_array <- function(dim) {
+  array(runif(prod(dim)), dim = dim)
+}
+```
+
+Define Matrices
+For the input we have a sequence of vectors, encoded as a 2D tensor of size `(timesteps, input_features)`.
+
+```{r}
+# Input data: random noise for the sake of the example
+inputs <- random_array(dim = c(timesteps, input_features))
+dim(inputs)
+```
+
+```{r}
+# The current stats,
+# Initial state: an all-zero vector
+# Afterwards, the output of the previous timestep
+state_t <- rep(0, output_features)
+length(state_t)
+```
+
+```{r}
+# Random weight and bias matrices as we saw in densely-connected networks
+W <- random_array(dim = c(output_features, input_features))
+dim(W)
+
+```
+
+```{r}
+b <- random_array(dim = c(output_features, 1))
+length(b)
+```
+
+The new parameter, U:
+
+```{r}
+U <- random_array(dim = c(output_features, output_features))
+dim(U)
+```
+
+The output, here, just a placeholder.
+
+```{r}
+# Empty matrix for storing output
+output_sequence <- array(0, dim = c(timesteps, output_features))
+```
+
+In this toy example, we just want to show how the output, the state of the network is integrated into the input in the next loop. 
+
+```{r}
+# input_t is a vector of shape (input_features)
+for (i in 1:nrow(inputs)) {
+  input_t <- inputs[i,]
+  
+  # The current output combines the current input with the current state (i.e. the previous output) 
+  output_t <- tanh(as.numeric((W %*% input_t) + (U %*% state_t) + b))
+  
+  # Update the result matrix
+  output_sequence[i,] <- as.numeric(output_t)
+
+  # Update the state of the network for the next timestep
+  state_t <- output_t
+}
+```
+
+## Implementation
+
+The functions we just used in the `for` loop:
+
+```
+relu(as.numeric((W %*% input_t) + (U %*% state_t) + b))
+```
+
+is implemented in keras as:
+
+```
+layer_simple_rnn(units = 32)
+```
+
+In the toy example, our input was of shape `(timesteps, input_features)`, however, in real life, like we've seen in all our networks so far, we can use batch processing. That means for keras, the input will be: `(batch_size, timesteps, input_features)`
+
+For the output, we can ask for just the final layer:
+
+```{r}
+
+model <- keras_model_sequential() %>% 
+  layer_embedding(input_dim = 10000, output_dim = 32) %>% 
+  layer_simple_rnn(units = 32)
+
+summary(model)
+```
+
+## Complete sequence
+
+If we want to complete sequence we can use `return_sequences = TRUE`.
+
+```{r}
+model <- keras_model_sequential() %>% 
+  layer_embedding(input_dim = 10000, output_dim = 32) %>% 
+  layer_simple_rnn(units = 32, return_sequences = TRUE)
+
+summary(model)
+```
+
+Notice the difference in shape to before.
+
+We'd want to have the full sequence when stacking several recurrent layers on top of each other.
+
+```{r}
+model <- keras_model_sequential() %>% 
+  layer_embedding(input_dim = 10000, output_dim = 32) %>% 
+  layer_simple_rnn(units = 32, return_sequences = TRUE) %>% 
+  layer_simple_rnn(units = 32, return_sequences = TRUE) %>%
+  layer_simple_rnn(units = 32, return_sequences = TRUE) %>%
+  layer_simple_rnn(units = 32)  # This last layer only returns the last outputs.
+
+summary(model)
+```
+
