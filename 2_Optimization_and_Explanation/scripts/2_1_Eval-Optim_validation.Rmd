@@ -20,7 +20,7 @@ library(keras)
 library(tidyverse)
 ```
 
-# Session 1 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Intro
 
@@ -39,9 +39,9 @@ Inside the `fit()` function, there are two arguments we can use to define a simp
 | `validation_split` | Specify a value between 0 - 1. This is the fraction of the training data that will be used for validation. The validation data is selected from the _last_ samples in the x and y data provided, before shuffling. |
 | `validation_data`  | Data on which to evaluate the loss and any model metrics at the end of each epoch, called as a list `(x_val, y_val)`. Overrides validation_split. |
 
-# Part 1: Data Preparation
+## Part 1: Data Preparation
 
-## Obtain data
+### Obtain data
 
 We already examined the data in the previous script. Here, we'll just prepare the data as before, for use with binary crossentropy. If you're unfamiliar with what's happening here, please refer to the main script. 
 
@@ -49,9 +49,9 @@ We already examined the data in the previous script. Here, we'll just prepare th
 source("Boston_Z.R")
 ```
 
-## Part 2: Simple hold-ut validation
+## Part 2: Automatic Hold-out
 
-### Automatically take 25%
+Automatically take X% of the training for validation.
 
 ```{r}
 network <- keras_model_sequential() %>% 
@@ -126,7 +126,9 @@ plot(history_split_shuffle)
 ```
 
 
-### Specify validation set manually
+## Part 3: Manual Hold-out
+
+Specify validation set manually
 
 ```{r data, warning = FALSE, echo = FALSE, context = "data", cache = TRUE}
 
@@ -172,7 +174,7 @@ history_data <-  network %>%
 plot(history_data)
 ```
 
-## Part 3: k-fold cross-validation
+## Part 3: k-fold Cross-validation
 
 First, let's make sure we have the original data, without manually splitting off a validation set:
 

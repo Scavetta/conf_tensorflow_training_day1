@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = FALSE, eval = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
 
 # Initialize packages
 library(keras)
@@ -23,7 +23,7 @@ library(randomForest)
 library(kableExtra)
 ```
 
-# Boston Dataset {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Functions & Take-home Message
 

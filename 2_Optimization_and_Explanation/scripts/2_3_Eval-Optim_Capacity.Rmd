@@ -1,0 +1,279 @@
+---
+title: "Case Study 2: Reuters -- Extra Variants"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r, setup, context="setup", include = FALSE}
+# runtime: shiny_prerendered
+knitr::opts_chunk$set(echo = TRUE)
+
+# Initialize package
+# install.packages(keras)
+library(keras)
+library(tidyverse) # purrr for reiterations, dplyr for data handling
+plot_bkg <- "grey70"
+
+# Install tensorflow - It's only necessary to run this once. 
+# for GPU
+# install_keras(tensorflow = "gpu")
+
+# or CPU:
+# install_keras() # for cpu
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Data Preparation
+
+We already examined the data in the previous script. Here, we'll just prepare the data as before.
+
+```{r}
+source("Boston_Z.R")
+```
+
+```{r data, warning = FALSE, context = "data", cache = TRUE}
+# Prepare the validation set
+index <- 1:101
+
+val_data <- train_data[index,]
+train_data <- train_data[-index,]
+
+val_targets <- train_targets[index]
+train_targets <- train_targets[-index]
+```
+
+## Variant 1: Larger or smaller layers
+
+Here, we'll try the whole range from $2^2 = 4$ to $2^{6} = 64$ neurons in each of our hidden layers.
+
+To do this, we'll define a function, `define_model` that allows us to define and compile our model. It takes one argument: 
+
+- `powerto = 4` - integer, the number of neurons as defined by two to the power of this value.
+
+```{r define_model}
+# Generalise the model definitions
+# Defaults to parameters we used in original case study.
+define_model <- function(powerto = 4) {
+  
+  # cat("Defining model with ", 2^powerto, " neurons per hidden layer \n")
+  
+  # Define the model, using powerto arg for neuron number.
+  network <- keras_model_sequential() %>% 
+    layer_dense(units = 2^powerto, activation = "relu", input_shape = 13) %>% 
+    layer_dense(units = 2^powerto, activation = "relu") %>% 
+    layer_dense(units = 1)
+  
+  # Compile as before
+network %>% compile(
+  optimizer = "rmsprop", 
+  loss = "mse", 
+  metrics = "mae"
+)
+}
+
+```
+
+In addition to that, I'll define another function for training the model, `run_model`. It takes one argument:
+
+- `epochs = 20` - integer, the numer of training epochs.
+
+I won't actually change the number of epochs here. it's provided for your convenience. I've set `verbose = FALSE` to avoid lots of print out.
+
+```{r run_model}
+run_model <- function(network, epochs = 20) {
+  
+  # cat("Training model ... \n")
+
+  # Train the model and return the history (or just the network)
+    network %>% fit(
+      train_data,
+      train_targets,
+      epochs = epochs,
+      batch_size = 512,
+      validation_data = list(val_data, val_targets),
+      verbose = FALSE
+    )
+}
+```
+
+The data is built into the function definitions, so calling my functions as below will provide the results we've seen previously.
+
+```{r ori_run}
+define_model() %>% 
+  run_model() -> history_original 
+
+# Plot history using default:
+history_original %>%
+  plot()
+
+# Prep data frame for use later on:
+history_original %>% 
+  data.frame() %>% 
+  mutate(nlayers = "2",
+         powerto = "16") -> history_original
+```
+
+I'm using `purrr::map()` to calculate all the models reiteratively. Since I want to plot all the values together, I convert the history to a data frame. At the end we'll have one large data frame with a `powerto` column that tells use how many neurons that model used.
+
+```{r var1_run, context = "data", cache = TRUE}
+# Define number of neurons
+powerto_input <- c(2:3,5:6)
+
+powerto_input %>% 
+  map(define_model) %>% 
+  map(run_model) %>% 
+  map_df(data.frame, .id = "powerto") %>% 
+  mutate(powerto = as.character(factor(powerto, labels = 2^powerto_input)),
+         nlayers = "2") -> history_powerto
+```
+
+From this, we can look at how the validation set accuracy and loss are affected. The line marked with red dots are the values we used in the original definition, above.
+
+```{r var1_plot, echo = F, message = FALSE}
+# merge with original and plot:
+history_powerto %>% 
+  full_join(history_original) %>%
+  arrange(as.numeric(powerto)) %>% 
+  ggplot(aes(epoch, value, col = as_factor(powerto), alpha = as_factor(powerto))) +
+  geom_line(alpha = 0.6) +
+  geom_point(col = "red") +
+  scale_alpha_manual("Number of neurons", values = c(rep(0,2),1,rep(0,2))) +
+  scale_color_brewer("Number of neurons", palette = "Blues") +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "2 hidden layers, changing number of neurons") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+Compared to the differently sized layers, our model reaches a fairly high and consistent accuracy. The larger models do not improve much on our original result.
+
+We can also count the number of parameters in each model:
+
+```{r nparams1, echo = FALSE}
+powerto_input2 <- 2:10
+
+powerto_input2 %>% 
+  map(define_model) -> justModels_powerto
+
+map(justModels_powerto, count_params) %>% 
+  map_df(data.frame, .id = "neurons") %>% 
+  mutate(neurons = 2^powerto_input2,
+         nlayers = 2) -> justModels_powerto 
+
+ggplot(justModels_powerto, aes(log2(neurons), .x..i..)) +
+  geom_line() +
+  geom_point(shape = 16, alpha = 0.6, size = 5) +
+  scale_x_continuous("Number of neurons", breaks = powerto_input2, labels = 2^powerto_input2) +
+  labs(y = "Number of parameters") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+## Variant 2: Changing the number of layers layers
+
+So now we have an idea that 16 neurons is appropriate. Do you think it would help to change the number of layers? I'm going to expand on the `build_model()` function I established earlier to allow us to define how many hidden layers.
+
+- `nlayers = 2` integer, the number of hidden layers. Minimum is 1.
+
+To make my syntax with `purrr::map()` easier, I'm going to put it in the first position.
+
+```{r define_model_revisited, context = "data", cache = TRUE}
+define_model <- function(nlayers = 2, powerto = 4) {
+
+  # cat("Defining model with ", 2^powerto, " neurons per ", nlayers," hidden layer(s) \n")
+  
+  # Establish model with single hidden, input, layer
+   network <- keras_model_sequential() %>% 
+    layer_dense(units = 2^powerto, activation = "relu", input_shape = 13)
+
+  # Add nlayers-1 number of additional layers
+  if (nlayers > 1) {
+  map(2:nlayers, ~ network %>%
+        layer_dense(units = 2^powerto, activation = "relu") 
+  )
+  }
+  
+  # Add final layer  
+  network %>% 
+    layer_dense(units = 1)
+  
+network %>% compile(
+  optimizer = "rmsprop", 
+  loss = "mse", 
+  metrics = "mae"
+)
+
+}
+
+```
+
+Once again, I'll use `purrr::map()` to calculate all the models reiteratively. This time I'll have one large data frame and the `nlayers` column will correspond to how many layers that model contained.
+
+```{r var2_run, context = "data", cache = TRUE}
+# Define number of neurons
+nlayers_input <- c(1,3:4)
+
+nlayers_input %>% 
+  map(define_model) %>%
+  map(run_model) %>% 
+  map_df(data.frame, .id = "nlayers") %>% 
+  mutate(nlayers = as.character(factor(nlayers, labels = nlayers_input)),
+         powerto = "16") -> history_nlayers
+
+```
+
+```{r var2_plot, context = "data", cache = TRUE, echo = FALSE, message = FALSE}
+history_nlayers %>%
+  full_join(history_original) %>%
+  ggplot(aes(epoch, value, col = nlayers, alpha = nlayers)) +
+  geom_line(alpha = 0.6) +
+  geom_point(col = "red") +
+  scale_alpha_manual("Number of\nhidden layers", values = c(0,1,rep(0,6))) +
+  scale_color_brewer("Number of\nhidden layers", palette = "Blues") +
+  facet_grid(metric ~ data, scales = "free_y") +
+  labs(title = "16 neurons per layer, changing number of hidden layers") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+```
+
+More layers seems to preform worse!  
+
+Let's take a look at the number of parameters here:
+
+```{r nparams2, echo = FALSE, message = FALSE, cache = FALSE}
+nlayers_input2 <- 1:4
+
+nlayers_input2 %>% 
+  map(define_model) -> justModels_nlayer
+
+map(justModels_nlayer, count_params) %>%
+   map_df(data.frame, .id = "nlayers") %>% 
+   mutate(neurons = 16,
+          nlayers = nlayers_input2) -> justModels_nlayer
+
+justModels_nlayer[3:1] %>%
+  bind_rows(justModels_powerto) %>% 
+  filter(!duplicated(.)) %>% 
+  mutate(nlayers = as.factor(nlayers)) -> parameters_total
+
+ggplot(parameters_total, aes(log2(neurons), .x..i.., col = nlayers)) +
+  geom_line() +
+  geom_point(shape = 16, alpha = 0.6, size = 5) +
+  scale_x_continuous("Number of neurons", breaks = powerto_input2, labels = 2^powerto_input2) +
+  labs(y = "Number of parameters", col = "Number of\nhidden layers") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = plot_bkg),
+        legend.key = element_rect(fill = plot_bkg))
+
+```

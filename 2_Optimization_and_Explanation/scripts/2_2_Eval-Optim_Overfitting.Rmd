@@ -25,7 +25,7 @@ plot_bkg <- "grey70"
 source("Boston_Z.R")
 ```
 
-# Session 2 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Intro
 
@@ -35,7 +35,7 @@ Avoiding overfitting in your model.
 
 ### Functions in this session:
 
-1. Reduce Capacity
+#### Reduce Capacity
 
 Use basic `keras` functions that we've seen already:
 
@@ -44,7 +44,7 @@ Use basic `keras` functions that we've seen already:
 | `layer_dense(units = xx)` | Change the number of nodes by adjusting the `units` argument in `layer_dense()` |
 | `layer_dense()`           | Reduce the number of hidden layers                                              |
 
-2. Add regularization:
+#### Add regularization:
 
 Inside a `layer_dense()` function, use the regularization argument: 
 
@@ -58,7 +58,7 @@ Inside a `layer_dense()` function, use the regularization argument:
 | `regularizer_l2(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
 | `regularizer_l1_l2(0.001, 0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
 
-3. Add Dropout
+#### Add Dropout
 
 Add an additional dropout layer using:
 
@@ -103,8 +103,6 @@ network %>% fit(
          Layers = "2") -> history_original
 
 ```
-
-
 
 ## Method 1: Changing capacity
 
@@ -226,7 +224,7 @@ history_capacity %>%
         legend.key = element_rect(fill = plot_bkg))
 ```
 
-## Medhod 2: Adding weight regularization
+## Method 2: Adding weight regularization
 
 L1 Regularization
 

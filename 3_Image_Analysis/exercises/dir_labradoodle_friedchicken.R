@@ -20,6 +20,3 @@ validation_dogs_dir <- file.path(validation_dir, "dog")
 test_dir <- file.path(base_dir, "test")
 test_chicken_dir <- file.path(test_dir, "chicken")
 test_dog_dir <- file.path(test_dir, "dog")
-
-
-

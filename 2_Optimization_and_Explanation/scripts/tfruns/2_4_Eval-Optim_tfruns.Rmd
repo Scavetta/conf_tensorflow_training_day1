@@ -1,0 +1,187 @@
+---
+title: "Using the tfruns package"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+ 
+## Install
+
+```{r eval = TRUE, message = FALSE, warning=FALSE}
+
+# Install tfruns
+# devtools::install_github("rstudio/tfruns")
+
+# For deep learning:
+library(keras)
+library(tfruns)
+
+# For output:
+library(tidyverse)
+library(DT)
+```
+
+## Train
+
+`mnist_mlp_v1.R` trains a Keras model to recognize MNIST digits. To train a model with tfruns, just use the training_run() function in place of the source() function to execute your R script.
+
+```{r}
+training_run("Boston_reg.R")
+```
+
+When training is completed, a summary of the run will automatically be displayed if you are within an interactive R session:
+
+The metrics and output of each run are automatically captured within a run directory which is unique for each run that you initiate.
+
+Note that for Keras and TF Estimator models this data is captured automatically (no changes to your source code are required).
+
+Use `latest_run()` to view the results of the last run (including the path to the run directory which stores all of the run’s output):
+
+```{r}
+latest_run()
+```
+
+Run directories are by default generated within the "runs" subdirectory of the current working directory, and use a timestamp as the name of the run directory. You can view the report for any given run using the `view_run()` function:
+
+```{r}
+# Enter a run to look at:
+view_run("runs/2019-01-14T14-02-02Z")
+```
+
+From terminal, run the training in the background
+
+```
+cd Extra\ Examples/tfruns/
+Rscript -e 'tfruns::training_run("boston_reg.R")'
+```
+
+## Compare
+
+- Change the number of units in the first dense layer to 128, 
+- Change the learning_rate from 0.001 to 0.003, and
+- Run 30 rather than 60 epochs.
+
+If we make these changes to the source code we can re-run the script using `training_run()` as before, or we can just save a new script:
+
+```{r}
+training_run("Boston_reg.R")
+```
+
+This will also show us a report summarizing the results of the run, but what we are really interested in is a comparison between this run and the previous one. We can view a comparison via the `compare_runs()` function
+
+```{r}
+compare_runs()
+```
+
+The comparison report shows the model attributes and metrics side-by-side, as well as differences in the source code and output of the training script.
+
+Note that compare_runs() will by default compare the last two runs, however you can pass any two run directories you like to be compared.
+
+```{r}
+compare_runs(c("runs/...", "runs/..."))
+```
+
+## Add Flags
+
+Tuning a model often requires exploring the impact of changes to many hyperparameters. The best way to approach this is generally not by changing the source code of the training script as we did above, but instead by defining flags for key parameters you may want to vary. 
+
+In the example script you can see that we have done this for the dropout layers:
+
+```{r}
+FLAGS <- flags(
+  flag_numeric("dropout1", 0.4),
+  flag_numeric("dropout2", 0.3)
+)
+
+# These flags are then used in the definition of our model here:
+
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
+  layer_dropout(rate = FLAGS$dropout1) %>%
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dropout(rate = FLAGS$dropout2) %>%
+  layer_dense(units = 1)
+```
+
+Once we’ve defined flags, we can pass alternate flag values to training_run() as follows:
+
+```{r}
+training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = 0.2, dropout2 = 0.2))
+```
+
+You aren’t required to specify all of the flags (any flags excluded will simply use their default value).
+
+Flags make it very straightforward to systematically explore the impact of changes to hyperparameters on model performance. For example we can reiterate over values using a for loop or the `purrr` package functions:
+
+For a single value
+
+```{r}
+# Tidyverse, reiterate over a single variable:
+seq(0.0, 0.4, 0.2) %>%
+  walk(~ training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = .), run_dir = paste0(gsub(":", "-", Sys.time()), " dropout1=", .)))
+```
+
+For two values. This has already been calculate for you:
+
+```{r eval = FALSE}
+dir.create("Dropout_expt")
+
+# Tidyverse, reiterate over two variables:
+# Here, I'm using a custom labelling convention for run_dir
+data.frame(dropout1 = seq(0.2, 0.8, 0.2),
+           dropout2 = seq(0.2, 0.8, 0.2)) %>% 
+  expand.grid() %>% 
+  map2(.x = .$dropout1, 
+       .y = .$dropout2, 
+       .f = ~ training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = .x, dropout2 = .y), 
+                      run_dir = paste0("Dropout_expt/", 
+                                       gsub(":", "-", Sys.time()), 
+                                       " dropout1=", .x, 
+                                       " dropout2=", .y),
+                      view = FALSE))
+
+```
+
+## Analyze
+
+We’ve demonstrated visualizing and comparing one or two runs, however as you accumulate more runs you’ll generally want to analyze and compare runs many runs. You can use the ls_runs() function to yield a data frame with summary information on all of the runs you’ve conducted within a given directory:
+
+
+```{r table, echo = FALSE, eval = TRUE}
+ls_runs(runs_dir = "Dropout_expt/")[2:9] %>% 
+  datatable()
+```
+
+Plot the results:
+
+```{r heatmap, echo = FALSE, eval = TRUE}
+
+ls_runs(runs_dir = "Dropout_expt/") %>% 
+  mutate(flag_dropout2 = as.factor(flag_dropout2),
+         flag_dropout1 = as.factor(flag_dropout1)) -> res
+
+ggplot(res, aes(flag_dropout1, flag_dropout2, fill = eval_mean_absolute_error, label = eval_mean_absolute_error)) +
+  geom_tile() +
+  geom_text(size = 3, col = "dark red") +
+  scale_fill_viridis_c(direction = -1) +
+  coord_fixed(expand = 0) +
+  labs(x = "Dropout Rate 1", 
+       y = "Dropout Rate 2", 
+       fill = "Evaluation MAE", 
+       title = "Evaluation MAE according to dropout rates") +
+  theme_classic() +
+  theme(axis.line = element_blank())
+```
+
