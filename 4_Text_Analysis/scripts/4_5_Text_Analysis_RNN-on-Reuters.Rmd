@@ -20,7 +20,7 @@ library(keras)
 library(tidyverse)
 ```
 
-# Session 4 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## reuters in an RNN
 

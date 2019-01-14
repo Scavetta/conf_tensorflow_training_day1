@@ -13,14 +13,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = FALSE)
 
 # Initialize package
 library(keras)
 library(tidyverse)
 ```
 
-# Session 4 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Obtain data
 
@@ -176,7 +176,7 @@ vectors).
 
 ```{r}
 
-glove_dir <- "./pretrained/glove.6B"
+glove_dir <- "/../../usr/share/class/glove.6B"
 lines <- readLines(file.path(glove_dir, "glove.6B.100d.txt"))
 
 lines[1] # Word embeddings in 100 dimensions.

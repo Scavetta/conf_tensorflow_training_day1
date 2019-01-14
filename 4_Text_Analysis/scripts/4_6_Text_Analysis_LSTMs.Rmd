@@ -13,14 +13,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = FALSE)
 
 # Initialize package
 library(keras)
 library(tidyverse)
 ```
 
-# Session 4 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Obtain data
 
@@ -74,9 +74,17 @@ plot(history)
 
 ## Evaluation
 
-Let's evaluate the model on the test data. First, we will need to tokenize the test data:
+Let's evaluate the model on the test data. 
 
 ```{r}
 model %>% 
   evaluate(input_test, test_targets, verbose = 0)
+```
+
+We can also load specific weights:
+
+```{r eval = FALSE }
+# model %>% 
+#   load_model_weights_hdf5("pre_trained_glove_model.h5") %>% 
+#   evaluate(input_test, test_targets, verbose = 0)
 ```

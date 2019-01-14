@@ -1,9 +1,0 @@
----
-title: "Computer Vision: Visualizing Cats and Dogs"
-subtitle: "lime"
-author: "Rick Scavetta"
-output: html_document
----
-
-
-
