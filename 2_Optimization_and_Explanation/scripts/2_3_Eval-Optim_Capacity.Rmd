@@ -243,7 +243,7 @@ history_nlayers %>%
         legend.key = element_rect(fill = plot_bkg))
 ```
 
-Our accuracy and loss are not improved upon by increasing the number of layers. Actually, more layers seems to preform worse!  
+More layers seems to preform worse!  
 
 Let's take a look at the number of parameters here:
 
@@ -263,7 +263,7 @@ justModels_nlayer[3:1] %>%
   filter(!duplicated(.)) %>% 
   mutate(nlayers = as.factor(nlayers)) -> parameters_total
 
-g <- ggplot(parameters_total, aes(log2(neurons), .x..i.., col = nlayers)) +
+ggplot(parameters_total, aes(log2(neurons), .x..i.., col = nlayers)) +
   geom_line() +
   geom_point(shape = 16, alpha = 0.6, size = 5) +
   scale_x_continuous("Number of neurons", breaks = powerto_input2, labels = 2^powerto_input2) +
@@ -271,88 +271,5 @@ g <- ggplot(parameters_total, aes(log2(neurons), .x..i.., col = nlayers)) +
   theme_classic() +
   theme(panel.background = element_rect(fill = plot_bkg),
         legend.key = element_rect(fill = plot_bkg))
-  
-# Zoom in on region of interest
-g
-# g + coord_cartesian(xlim = c(2.5,5.5), ylim = c(80000, 325000))
-  
-```
-
-# Variant 3: Combination of varying number of neurons and hidden layers
-
-Since we're here, let's look at changing both at the same time. We'll take a look at all possible combinations between `r min(nlayers_input)` and `r max(nlayers_input)` hidden layers and $2^{`r powerto_input[1]`}$ and $2^{`r powerto_input[length(powerto_input)]`}$ neurons per layer. Use the controls to view the results.
-
-```{r var3_run, context = "data", cache = TRUE, echo = FALSE}
-# Make a data frame of all possible combinations,
-# but remove those already calculated:
-  expand.grid(nlayers_input,
-              powerto_input) %>% 
-  rename(nlayers_input = Var1,
-         powerto_input = Var2) -> DF 
-
-# Calculate all possible combinations:
-map2(DF$nlayers_input, DF$powerto_input, ~ define_model(.x, .y)) %>% 
-  map(run_model) %>% 
-  map_df(data.frame, .id = "ID") %>% 
-  mutate(ID = factor(ID, labels = paste(DF$nlayers_input, 2^DF$powerto_input, sep = "_"))) %>% 
-  separate(ID, c("nlayers", "powerto")) -> history_rest
-
 
 ```
-
-```{r data_merge, echo = FALSE, message = FALSE}
-# Join with the rest of the data
-# Remove duplicate entries before merging:
-history_rest %>% 
-  full_join(history_original) %>% 
-  full_join(history_nlayers) %>% 
-  full_join(history_powerto) %>%
-  mutate(nlayers = as.numeric(nlayers),
-         powerto = as.numeric(powerto))  %>% 
-  arrange(powerto) -> history #%>% 
-```
-
-```{r var3_plot_shiny_app, echo = FALSE}
-# Create a shinyUI for exploring the data:
-inputPanel(
-  sliderInput("layers", h4("Number of layers:"),
-              min = min(history$nlayers), max = max(history$nlayers),
-              value = 2, step = 1,
-              animate = animationOptions(interval = 1000, loop = TRUE)),
-  
-  radioButtons("metric", h4("Metric"),
-               choices = list("Loss" = "loss", "Accuracy" = "acc"),
-               selected = "acc"),
-  
-    radioButtons("data", h4("Data set"),
-               choices = list("Training" = "training", "Validation" = "validation"),
-               selected = "validation")
-)
-
-# Display plot output:
-plotOutput("distPlot")
-```
-
-```{r var3_plot_shiny_server, context = "server", echo = FALSE}
-
-# Render Plot output:
-output$distPlot <- renderPlot({
-  
-  history %>% 
-  filter(nlayers == input$layers, metric == input$metric, data == input$data) %>% 
-  ggplot(aes(epoch, value, col = as_factor(as.character(powerto)))) +
-  geom_line(alpha = 0.6) +
-  geom_point(data = history[history$nlayers == 2 & 
-                            history$powerto == 16 & 
-                            history$metric == input$metric & 
-                            history$data == input$data,], col = "red") +
-  scale_color_brewer("Number of neurons", palette = "Blues") +
-  labs(title = paste(input$layers, "hidden layers, changing number of neurons, -", input$data, "set.")) +
-  theme_classic() +
-  theme(panel.background = element_rect(fill = plot_bkg),
-        legend.key = element_rect(fill = plot_bkg))
-  
-})
-```
-
-In some definitions, accuracy is increased by having more layers with fewer neurons or fewer layers with more neurons.
