@@ -70,8 +70,8 @@ Because pre-trained word embeddings are meant to be particularly useful on probl
 # We will only consider the top 10,000 words in the dataset
 max_words <- 10000
 
-tokenizer <- text_tokenizer(num_words = max_words) %>% 
-  fit_text_tokenizer(texts)
+tokenizer <- _______(num_words = max_words) %>% 
+  _______(texts)
 
 typeof(tokenizer)
 ```
@@ -96,7 +96,7 @@ index_word[1:10]
 ```
 
 ```{r}
-sequences <- texts_to_sequences(tokenizer, texts)
+sequences <- _______(tokenizer, texts)
 ```
 
 `sequences` contains the vectorized values as a list.
@@ -122,7 +122,7 @@ Like before, we'll limit ourselves to the first 500 words.
 
 ```{r}
 
-maxlen <- 100                 # We will cut reviews after 100 words
+maxlen <- 100 # We will cut reviews after 100 words
 
 data <- pad_sequences(sequences, maxlen = maxlen)
 ```
@@ -220,7 +220,7 @@ for (i in 1:length(lines)) {
 i.e. the 100-dimensional embedding vectors for 400,000 words.
 
 ```{r}
-embeddings_index[["said"]]
+_______[["said"]]
 ```
 
 Now we're ready to build an embedding matrix that we can load into an embedding layer.
@@ -248,11 +248,15 @@ for (word in names(word_index)) {
 We will be using the same model architecture as before:
 
 ```{r}
-model <- keras_model_sequential() %>% 
-  layer_embedding(input_dim = max_words, # 10000 tokens
+model <- _______() %>% 
+  
+  # embeddings layer
+  _______(input_dim = _______, # 10000 tokens
                   output_dim = embedding_dim, # dimensions in embedding layer
                   input_length = maxlen) %>%  # length of each review set by maxlen
-  layer_flatten() %>% 
+  
+  # flatten output
+  _______() %>% 
   layer_dense(units = 32, activation = "relu") %>%
   layer_dense(units = 32, activation = "relu") %>%
   layer_dense(units = 46, activation = "softmax")
@@ -264,10 +268,15 @@ summary(model)
 
 The embedding layer has a single weight matrix: a 2D float matrix where each entry _i_ is the word vector meant to be associated with index _i_. Simple enough. Load the GloVe matrix you prepared into the embedding layer, the first layer in the model.
 
+
+
 ```{r}
-get_layer(model, index = 1) %>% 
-  set_weights(list(embedding_matrix)) %>% 
-  freeze_weights()
+
+# get the layer, set the weights and then freeze them.
+
+_______(model, index = 1) %>% 
+  _______(list(embedding_matrix)) %>% 
+  _______()
 ```
 
 Additionally, you'll freeze the weights of the embedding layer, following the same rationale you're already familiar with in the context of pre-trained convnet features: when parts of a model are pre-trained (like your embedding layer) and parts are randomly initialized (like your classifier), the pre-trained parts shouldn't be updated during training, to avoid forgetting  what they already know. The large gradient updates triggered by the randomly initialized layers would be disruptive to the already-learned features.

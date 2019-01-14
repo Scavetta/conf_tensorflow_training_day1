@@ -79,9 +79,11 @@ conv_base
 
 ### Unfreezing
 
+Use the above function to unfreeze weights
+
 ```{r}
 # Unfreezing previously frozen layers
-unfreeze_weights(conv_base, from = "block3_conv1")
+_______(conv_base, from = "block3_conv1")
 ```
 
 ## Fine-tuning

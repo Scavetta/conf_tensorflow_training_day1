@@ -32,11 +32,12 @@ Text analysis using one-hot encoding
 
 Here we'll see some basic ways of working with text, using one-hot encoding.
 
-| Function              | Description                               |
-|:----------------------|:------------------------------------------|
-| `dataset_reuters()`    | Import the Reuters Newswires dataset. |
-| `dataset_reuters_word_index()`    | Reuters dataset word index. |
-| `to_categorical()` | Vectorize labels for use with softmax and `categorical_crossentropy` loss function. |
+| Function                       | Description                                                                         |
+|:-------------------------------|:------------------------------------------------------------------------------------|
+| `dataset_reuters()`            | Import the Reuters Newswires dataset.                                               |
+| `dataset_reuters_word_index()` | Reuters dataset word index.                                                         |
+| `vectorize_sequences()`        | Custom function to produce one-hot encoded data.                                    |
+| `to_categorical()`             | Vectorize labels for use with softmax and `categorical_crossentropy` loss function. |
 
 ## Part 1: Data Preparation
 
@@ -45,7 +46,7 @@ For multi-class classification, we previously use `sparse_cateogircal_crossentro
 ### Obtain data
 
 ```{r data, warning = FALSE}
-c(c(train_data, train_labels), c(test_data, test_labels)) %<-% dataset_reuters(num_words = 10000)
+c(c(train_data, train_labels), c(test_data, test_labels)) %<-% _______(num_words = 10000)
 ```
 
 ### Examine data:
@@ -64,7 +65,7 @@ train_data[[1]]
 Map values back onto the lexicon which is stored as a named list. Each item in the list is an integer vector of length one. This number corresponds to the position in the word count list and the name of the vector is the actual word. 
 
 ```{r}
-dataset_reuters_word_index() %>% 
+_______() %>% 
   unlist() %>%                      # produce a vector
   sort() %>%                        # put them in order 
   names() -> word_index             # take the ordered names
@@ -93,8 +94,8 @@ vectorize_sequences <- function(sequences, dimension = 10000) {
   results
 }
 
-train_data_vec <- vectorize_sequences(train_data)
-test_data_vec <- vectorize_sequences(test_data)
+train_data_vec <- _______(train_data)
+test_data_vec <- _______(test_data)
 ```
 
 Let's look at the first example from the training set. Recall that these are the index positions of the words 
@@ -177,11 +178,13 @@ Notice the similarity to how we prepared our training data with one-hot encoding
 
 ### Define the network
 
+You shoud be familiar with this step by now.
+
 ```{r architecture}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 64, activation = "relu", input_shape = 10000) %>% 
-  layer_dense(units = 64, activation = "relu") %>% 
-  layer_dense(units = 46, activation = "softmax")
+network <- _______() %>% 
+  _______(units = _______, activation = _______, input_shape = _______) %>% 
+  _______(units = _______, activation = v) %>% 
+  _______(units = _______, activation = _______)
 ```
 
 ### View a summary of the network
@@ -192,11 +195,13 @@ summary(network)
 
 ### Compile
 
+Which funcitons will we use here?
+
 ```{r compile}
 network %>% compile(
   optimizer = "rmsprop",
-  loss = "categorical_crossentropy",
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 ```
 
@@ -214,13 +219,15 @@ train_labels_vec = train_labels_vec[-index,]
 
 Now let's train our network for 20 epochs:
 
+Which objects to use for training and validation?
+
 ```{r echo=TRUE, results = "hide", warning = FALSE}
 history <- network %>% fit(
-  train_data_vec,
-  train_labels_vec,
+  _______,
+  _______,
   epochs = 20,
   batch_size = 512,
-  validation_data = list(val_data_vec, val_labels_vec)
+  validation_data = list(_______, v)
 )
 ```
 
@@ -230,7 +237,6 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-The network begins to over-fit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
@@ -246,7 +252,7 @@ network %>% compile(
 history <- network %>% fit(
   train_data_vec,
   train_labels_vec,
-  epochs = 9,
+  epochs = _______,
   batch_size = 512,
   validation_data = list(val_data_vec, val_labels_vec)
 )
@@ -280,10 +286,10 @@ Our accuracy is `r metrics$acc` and the error rate, i.e. incorrect calling, is `
 
 ### Predictions
 
-Predict classes will give us the integer values from the test data:
+Predict classes will give us the integer values from the test data. What is the `predict()` function to use?
 
 ```{r predictions}
-predictions <- network %>% predict_classes(test_data_vec)
+predictions <- network %>% _______(test_data_vec)
 predictions[1:10]
 ```
 

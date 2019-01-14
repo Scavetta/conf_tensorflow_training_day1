@@ -123,7 +123,7 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-The network begins to over-fit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
+The network begins to over-fit after about 25 epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 

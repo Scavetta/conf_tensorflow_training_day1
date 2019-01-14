@@ -74,7 +74,7 @@ install_keras() # for cpu
 ### Obtain data
 
 ```{r data, warning = FALSE}
-c(c(train_data, train_targets), c(test_data, test_targets)) %<-% dataset_boston_housing()
+c(c(train_data, train_targets), c(test_data, test_targets)) _______ dataset_boston_housing()
 ```
 
 ### Examine data:
@@ -136,15 +136,15 @@ summary(test_targets)
 Here, I've hard-coded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
 
 ```{r defModel}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
-  layer_dense(units = 64, activation = "relu") %>% 
-  layer_dense(units = 1) 
+network <- _______ %>% 
+  _______ %>% 
+  _______ %>% 
+  _______ 
 
-network %>% compile(
+network %>% _______(
   optimizer = "rmsprop", 
-  loss = "mse", 
-  metrics = "mae"
+  loss = _______, 
+  metrics = _______
 )
 ```
 
@@ -164,7 +164,7 @@ We need to decide how many epochs to run our model plus the size and the number 
 
 ```{r}
 history <- network %>% 
-  fit(train_data, 
+  _______(train_data, 
       train_targets,
       epochs = 100, 
       batch_size = 16)
@@ -181,7 +181,7 @@ plot(history)
 
 ```{r runZ_2}
 result <- network %>% 
-  evaluate(test_data, test_targets)
+  _______(test_data, test_targets)
 ```
 
 ### Results:
@@ -201,7 +201,7 @@ To get the actual predictions we can use the `predict()` function:
 
 ```{r}
 network %>%
-  predict(test_data) %>% 
+  _______(test_data) %>% 
   head()
 ```
 

@@ -82,10 +82,10 @@ train_targets %>%
 Here we specify the final activation function. We're going to use the sigmoid activation function, which will return a single value. That matches the format of our labels.
 
 ```{r architecture}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = 13) %>% 
-  layer_dense(units = 2^6, activation = "relu") %>% 
-  layer_dense(units = 5, activation = "softmax")
+network <- _______ %>% 
+  _______ %>% 
+  _______ %>% 
+  _______
 ```
 
 ### View a summary of the network
@@ -97,10 +97,10 @@ summary(network)
 ### Compile
 
 ```{r compile}
-network %>% compile(
+network %>% _______(
   optimizer = "rmsprop",
-  loss = "sparse_categorical_crossentropy",
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 ```
 
@@ -109,10 +109,10 @@ network %>% compile(
 Now let's train our network for 100 epochs:
 
 ```{r echo=TRUE, results = "hide", warning = FALSE}
-history <- network %>% fit(
+history <- network %>% _______(
   train_data,
   train_targets,
-  epochs = 100,
+  epochs = _______,
   batch_size = 16
 )
 ```
@@ -123,7 +123,7 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-The network begins to over-fit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
+The network begins to over-fit after about 25 epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
@@ -133,8 +133,8 @@ network <- keras_model_sequential() %>%
   
 network %>% compile(
   optimizer = "rmsprop",
-  loss = "sparse_categorical_crossentropy",
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 
 history <- network %>% fit(
@@ -152,7 +152,7 @@ Let's return to our original model using the vectorized data:
 ### Metrics
 
 ```{r metrics}
-metrics <- network %>% evaluate(test_data, test_targets)
+metrics <- network %>% _______(test_data, test_targets)
 ```
 
 ```{r}
@@ -164,11 +164,11 @@ The accuracy is `r metrics$acc` and the error rate, i.e. incorrect calling, is `
 ### Predictions
 
 ```{r predictions}
-network %>% predict_classes(test_data[1:10,])
+network %>% _______(test_data[1:10,])
 ```
 
 ```{r allPredictions}
-predictions <- network %>% predict_classes(test_data)
+predictions <- network %>% _______(test_data)
 actual <- unlist(test_targets)
 totalmisses <- sum(predictions != actual)
 ```
@@ -176,8 +176,7 @@ totalmisses <- sum(predictions != actual)
 ### Confusion Matrix
 
 ```{r confusion, echo = F}
-suppressPackageStartupMessages(library(tidyverse))
-# library(dplyr)
+
 data.frame(target = actual,
            prediction = predictions) %>% 
   filter(target != prediction) %>% 

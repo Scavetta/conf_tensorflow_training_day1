@@ -133,11 +133,15 @@ In the toy example, our input was of shape `(timesteps, input_features)`, howeve
 
 For the output, we can ask for just the final layer:
 
+
+
 ```{r}
 
 model <- keras_model_sequential() %>% 
   layer_embedding(input_dim = 10000, output_dim = 32) %>% 
-  layer_simple_rnn(units = 32)
+  
+  # Add an RNN layer
+  _______(units = 32)
 
 summary(model)
 ```
@@ -149,7 +153,9 @@ If we want to complete sequence we can use `return_sequences = TRUE`.
 ```{r}
 model <- keras_model_sequential() %>% 
   layer_embedding(input_dim = 10000, output_dim = 32) %>% 
-  layer_simple_rnn(units = 32, return_sequences = TRUE)
+  
+  # Add an RNN layer, show all the sequences
+  _______(units = 32, return_sequences = _______)
 
 summary(model)
 ```
@@ -161,10 +167,12 @@ We'd want to have the full sequence when stacking several recurrent layers on to
 ```{r}
 model <- keras_model_sequential() %>% 
   layer_embedding(input_dim = 10000, output_dim = 32) %>% 
-  layer_simple_rnn(units = 32, return_sequences = TRUE) %>% 
-  layer_simple_rnn(units = 32, return_sequences = TRUE) %>%
-  layer_simple_rnn(units = 32, return_sequences = TRUE) %>%
-  layer_simple_rnn(units = 32)  # This last layer only returns the last outputs.
+  
+  # Add many layers:
+  _______(units = 32, return_sequences = _______) %>% 
+  _______(units = 32, return_sequences = _______) %>%
+  _______(units = 32, return_sequences = _______) %>%
+  _______(units = 32)  # This last layer only returns the last outputs.
 
 summary(model)
 ```

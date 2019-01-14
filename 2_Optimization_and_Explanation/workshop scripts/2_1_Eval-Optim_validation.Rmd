@@ -122,7 +122,7 @@ history_split_shuffle <-  network %>%
     train_targets,
     epochs = 120,
     batch_size = 1,
-    validation_split = 0.25,
+    _______ = _______,
     verbose = FALSE
   )
 ```
@@ -170,7 +170,7 @@ history_data <-  network %>%
     train_targets,
     epochs = 120,
     batch_size = 1,
-      validation_data = list(val_data, val_targets),
+      _______ = list(_______, _______),
       verbose = FALSE
   )
 ```

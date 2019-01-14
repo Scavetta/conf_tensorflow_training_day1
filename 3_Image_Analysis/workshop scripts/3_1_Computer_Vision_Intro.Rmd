@@ -72,23 +72,29 @@ data.frame(Cats = c(length(list.files(train_cats_dir)),
 
 ```{r}
 
-model <- keras_model_sequential() %>%
-  layer_conv_2d(filters = 32, kernel_size = c(3, 3), activation = "relu", input_shape = c(150, 150, 3)) %>%
-  layer_max_pooling_2d(pool_size = c(2, 2)) %>%
+model <- _______() %>%
+  # Convolution and max pooling
+  _______(filters = _______, kernel_size = _______, activation = _______, input_shape = _______) %>%
+  _______(pool_size = _______) %>%
   
-  layer_conv_2d(filters = 64, kernel_size = c(3, 3), activation = "relu") %>% 
-  layer_max_pooling_2d(pool_size = c(2, 2)) %>%
+  # Another convolution and max pooling
+  _______(filters = _______, kernel_size = _______, activation = _______) %>% 
+  _______(pool_size = _______) %>%
   
-  layer_conv_2d(filters = 128, kernel_size = c(3, 3), activation = "relu") %>% 
-  layer_max_pooling_2d(pool_size = c(2, 2)) %>%
+  # Another convolution and max pooling
+  _______(filters = _______, kernel_size = _______, activation = _______) %>% 
+  _______(pool_size = _______) %>%
   
-  layer_conv_2d(filters = 128, kernel_size = c(3, 3), activation = "relu") %>% 
-  layer_max_pooling_2d(pool_size = c(2, 2)) %>%
+  # Another convolution and max pooling
+  _______(filters = _______, kernel_size = _______, activation = _______) %>% 
+  _______(pool_size = _______) %>%
   
-  layer_flatten() %>%
+  # Flatten the tensors
+  _______() %>%
   
-  layer_dense(units = 512, activation = "relu") %>%
-  layer_dense(units = 1, activation = "sigmoid")
+  # Dense layers
+  _______(units = _______, activation = _______) %>%
+  _______(units = _______, activation = _______)
 
 summary(model)
 
@@ -97,58 +103,52 @@ summary(model)
 Compile the model:
 
 ```{r}
+# What is the loss and the evaluation metric?
 model %>% compile(
-  loss = "binary_crossentropy",
   optimizer = optimizer_rmsprop(lr = 1e-4),
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 
 ```
 
 ## Read images from directories
 
-Use `image_data_generator()`
+Use `image_data_generator()` and rescale the values to 1/255. Use `()`, remember the target size and analytical problem for the `class_mode`.
 
 ```{r}
 
-train_datagen <- image_data_generator(rescale = 1/255)
-validation_datagen <- image_data_generator(rescale = 1/255)
+train_datagen <- _______(rescale = _______)
+validation_datagen <- _______(rescale = _______)
 
-train_generator <- flow_images_from_directory(
+train_generator <- _______(
   train_dir,
   train_datagen,
-  target_size = c(150, 150),
+  target_size = _______,
   batch_size = 20,
-  class_mode = "binary"
+  class_mode = _______
 )
 
-validation_generator <- flow_images_from_directory(
+validation_generator <- _______(
   validation_dir,
   validation_datagen,
-  target_size = c(150, 150),
+  target_size = _______,
   batch_size = 20,
-  class_mode = "binary"
+  class_mode = _______
 )
-```
-
-View batches
-
-```{r}
-
-batch <- generator_next(train_generator)
-str(batch)
-
 ```
 
 ## Train
 
+We have a net `fit()` function here for generators. The training and the validation set are also differet, but we specified them in the previous step.
+
 ```{r}
 
-history <- model %>% fit_generator(
-  train_generator,
+history <- model %>% _______(
+  _______,
   steps_per_epoch = 100,
   epochs = 30,
-  validation_data = validation_generator,
+  validation_data = _______,
   validation_steps = 50
 )
 
@@ -168,21 +168,23 @@ plot(history)
 
 ## Evaluation
 
+Just like we prepared the training and validation set, prepare the test set. Finally, we want to evaluater, but the `evaluate()` function is also a bit different, it is specifically for the generator situation.
+
 ```{r}
 
 model_conv <- load_model_hdf5("cats_and_dogs_small_convnet.h5")
 
 # Test generator function:
-test_datagen <- image_data_generator(rescale = 1/255)
+test_datagen <- _______(rescale = _______)
 
-test_generator <- flow_images_from_directory(
+test_generator <- _______(
   test_dir,
   test_datagen,
-  target_size = c(150, 150),
+  target_size = _______,
   batch_size = 20,
-  class_mode = "binary"
+  class_mode = _______
 )
 
-model_conv %>% evaluate_generator(test_generator, steps = 50)
+model_conv %>% _______(test_generator, steps = 50)
 
 ```

@@ -49,9 +49,11 @@ source("dir_cat_dog.R")
 
 ## Obtain a pre-trained convnet base
 
+Choose the correct pre-defined convnet and use the `"imagenet weights"`
+
 ```{r getConv}
-conv_base <- application_vgg16(
-  weights = "imagenet",
+conv_base <- _______(
+  weights = _______,
   include_top = FALSE,
   input_shape = c(150, 150, 3)
 )
@@ -62,6 +64,8 @@ conv_base
 ```
 
 ## Extracting features using the pre-trained convolutional base
+
+This will automaticall create training, validation and test sets with the data and labels
 
 ```{r dataGen0}
 
@@ -99,21 +103,24 @@ extract_features <- function(directory, sample_count) {
   ) }
 
 
-train <- extract_features(train_dir, 2000)
-validation <- extract_features(validation_dir, 1000)
-test <- extract_features(test_dir, 1000)
+# Call our functions:
+train <- _______(train_dir, 2000)
+validation <- _______(validation_dir, 1000)
+test <- _______(test_dir, 1000)
 
 ```
 
 ## Reshape features
 
+Use `array_reshape()` to resize the images.
+
 ```{r reshape}
 reshape_features <- function(features) {
-  array_reshape(features, dim = c(nrow(features), 4 * 4 * 512))
+  _______(features, dim = c(nrow(features), 4 * 4 * 512))
 }
-train$features <- reshape_features(train$features)
-validation$features <- reshape_features(validation$features)
-test$features <- reshape_features(test$features)
+train$features <- _______(train$features)
+validation$features <- _______(validation$features)
+test$features <- _______(test$features)
 ```
 
 ## Define model
@@ -160,13 +167,19 @@ plot(history1)
 
 ### Combine layers
 
-Combining a densely-connected neural network with the convolutional base
+Combining a densely-connected neural network with the convolutional base. Begin with initiating your network.
 
 ```{r convModel}
 
-model <- keras_model_sequential() %>%
-  conv_base %>%
-  layer_flatten() %>%
+model <- _______() %>%
+  
+  # Add convnet
+  _______ %>%
+  
+  # flatten 
+  _______() %>%
+  
+  # Dense network
   layer_dense(units = 256, activation = "relu") %>%
   layer_dense(units = 1, activation = "sigmoid")
 
@@ -176,10 +189,12 @@ model
 
 ### Freezing
 
+Make sure to freeze the weights of the convnet.
+
 ```{r freezeParam}
 cat(length(model$trainable_weights), " trainable weights before freezing.\n")
 
-freeze_weights(conv_base)
+_______(conv_base)
 
 cat(length(model$trainable_weights), " trainable weights before freezing.\n")
 
@@ -227,7 +242,9 @@ model %>% compile(
   metrics = c("accuracy")
 )
 
-history_vgg16 <- model %>% fit_generator(
+
+# use the appropriate fit function
+history_vgg16 <- model %>% _______(
   train_generator,
   steps_per_epoch = 100,
   epochs = 30,
@@ -256,6 +273,8 @@ plot(history_vgg16)
 
 ## Evaluation
 
+
+
 ```{r}
 # Execute this in the terminal to download the model:
 # wget http://scavetta.academy/models/cats_and_dogs_vgg16_fine.h5
@@ -270,7 +289,8 @@ test_generator <- flow_images_from_directory(
   class_mode = "binary"
 )
 
-model_vgg16 %>% evaluate_generator(test_generator, steps = 50)
+# Use the appropriate evaluate function.
+model_vgg16 %>% _______(test_generator, steps = 50)
 
 ```
 

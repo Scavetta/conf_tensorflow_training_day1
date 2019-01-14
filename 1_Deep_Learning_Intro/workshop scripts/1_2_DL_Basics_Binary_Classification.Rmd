@@ -77,10 +77,10 @@ table(test_targets)
 Here we specify the final activation function. We're going to use the sigmoid activation function, which will return a single value. That matches the format of our labels.
 
 ```{r architecture}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
-  layer_dense(units = 2^6, activation = "relu") %>% 
-  layer_dense(units = 1, activation = "sigmoid")
+network <- _______ %>% 
+  _______ %>% 
+  _______ %>% 
+  _______
 ```
 
 ### View a summary of the network
@@ -96,8 +96,8 @@ Instead of `categorical_crossentropy` we're going to use `binary_crossentropy` s
 ```{r compile}
 network %>% compile(
   optimizer = "rmsprop",
-  loss = "binary_crossentropy",
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 ```
 
@@ -106,12 +106,12 @@ network %>% compile(
 Now let's train our network for 100 epochs:
 
 ```{r echo=TRUE, results = "hide", warning = FALSE}
-history <- network %>% fit(
-  train_data,
-  train_targets,
-  epochs = 100,
-  batch_size = 16
-)
+history <- network %>% 
+  _______(train_data,
+      train_targets,
+      epochs = 100,
+      batch_size = 16
+  )
 ```
 
 Let's display its loss and accuracy curves:
@@ -120,12 +120,11 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-
-The network begins to over-fit after four epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
+The network begins to over-fit after about 30 epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = 13) %>% 
   layer_dense(units = 2^6, activation = "relu") %>% 
   layer_dense(units = 1, activation = "sigmoid")
   
@@ -138,7 +137,7 @@ network %>% compile(
 history <- network %>% fit(
   train_data,
   train_targets,
-  epochs = 30,
+  epochs = _______,
   batch_size = 16
 )
 ```
@@ -148,7 +147,7 @@ history <- network %>% fit(
 ### Metrics
 
 ```{r metrics}
-metrics <- network %>% evaluate(test_data, test_targets)
+metrics <- network %>% _______(test_data, test_targets)
 ```
 
 ```{r}
@@ -160,7 +159,7 @@ The accuracy is `r metrics$acc` and the error rate, i.e. the incorrect calling, 
 ### Predictions
 
 ```{r predictions}
-network %>% predict_classes(test_data[1:10,])
+network %>% _______(test_data[1:10,])
 ```
 
 ```{r allPredictions}

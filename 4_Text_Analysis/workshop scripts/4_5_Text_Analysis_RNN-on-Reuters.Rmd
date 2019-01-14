@@ -61,19 +61,27 @@ input_test <- pad_sequences(input_test_original, maxlen = maxlen)
 Let's train a simple recurrent network using a `layer_embedding()` and `layer_simple_rnn()`.
 
 ```{r, echo=TRUE, results='hide'}
-model <- keras_model_sequential() %>%
-  layer_embedding(input_dim = max_features, output_dim = 32) %>%
-  layer_simple_rnn(units = 32) %>%
-  layer_dense(units = 46, activation = "softmax")
+
+
+model <- _______() %>%
+  
+  # Embedding
+  _______(input_dim = max_features, output_dim = 32) %>%
+  
+  # RNN
+  _______(units = 32) %>%
+  
+  # Dense
+  _______(units = 46, activation = "softmax")
 
 model %>% compile(
   optimizer = "rmsprop",
-  loss = "sparse_categorical_crossentropy",
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 
 historyRNN_small <- model %>% fit(
-  input_train, train_targets,
+  _______, _______,
   epochs = 20,
   batch_size = 128,
   validation_split = 0.15
@@ -85,34 +93,34 @@ historyRNN_small <- model %>% fit(
 plot(historyRNN_small)
 ```
 
-Can we do better by increasing the length of the reviews?
+Can we do better by increasing the length of the reviews? pad the sequences with a max lenfth of 100.
 
 ```{r}
 
 # Cut off the text after 100 words (i.e. among the max_features most common words)
-maxlen <- 100
+maxlen <- _______
 
 # Turns the lists of integers into a 2D integer tensor of shape (samples, maxlen)
-input_train <- pad_sequences(input_train_original, maxlen = maxlen)
-input_test <- pad_sequences(input_test_original, maxlen = maxlen)
+input_train <- _______(input_train_original, maxlen = maxlen)
+input_test <- _______(input_test_original, maxlen = maxlen)
 ```
 
 Let's train a simple recurrent network using a `layer_embedding()` and `layer_simple_rnn()`.
 
 ```{r, echo=TRUE, results='hide'}
 model <- keras_model_sequential() %>%
-  layer_embedding(input_dim = max_features, output_dim = 32) %>%
-  layer_simple_rnn(units = 32) %>%
-  layer_dense(units = 46, activation = "softmax")
+  _______(input_dim = max_features, output_dim = 32) %>%
+  _______(units = 32) %>%
+  _______(units = 46, activation = "softmax")
 
 model %>% compile(
   optimizer = "rmsprop",
-  loss = "sparse_categorical_crossentropy",
-  metrics = "accuracy"
+  loss = _______,
+  metrics = _______
 )
 
 historyRNN_large <- model %>% fit(
-  input_train, train_targets,
+  _______, _______,
   epochs = 20,
   batch_size = 128,
   validation_split = 0.15

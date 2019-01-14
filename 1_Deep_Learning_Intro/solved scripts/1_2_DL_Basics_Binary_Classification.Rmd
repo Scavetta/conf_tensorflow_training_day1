@@ -78,7 +78,7 @@ Here we specify the final activation function. We're going to use the sigmoid ac
 
 ```{r architecture}
 network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = 13) %>% 
   layer_dense(units = 2^6, activation = "relu") %>% 
   layer_dense(units = 1, activation = "sigmoid")
 ```
@@ -106,12 +106,12 @@ network %>% compile(
 Now let's train our network for 100 epochs:
 
 ```{r echo=TRUE, results = "hide", warning = FALSE}
-history <- network %>% fit(
-  train_data,
-  train_targets,
-  epochs = 100,
-  batch_size = 16
-)
+history <- network %>% 
+  fit(train_data,
+      train_targets,
+      epochs = 100,
+      batch_size = 16
+  )
 ```
 
 Let's display its loss and accuracy curves:
@@ -121,14 +121,14 @@ plot(history)
 ```
 
 
-The network begins to over-fit after four epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
+The network begins to over-fit after about 30 epochs. Let's train a new network from scratch for four epochs and then evaluate it on the test set.
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = 13) %>% 
   layer_dense(units = 2^6, activation = "relu") %>% 
   layer_dense(units = 1, activation = "sigmoid")
-  
+
 network %>% compile(
   optimizer = "rmsprop",
   loss = "binary_crossentropy",

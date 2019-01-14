@@ -61,10 +61,17 @@ input_test <- pad_sequences(input_test_original, maxlen = maxlen)
 Now let's switch to more practical concerns: we will set up a model using a LSTM layer and train it on the Reuters dataset. Here's the network,similar to the one with `layer_simple_rnn()` that we just presented. We only specify the output dimensionality of the LSTM layer, and leave every  other argument (there are lots) to the Keras defaults. Keras has good defaults, and things will almost always "just work" without you having to spend time tuning parameters by hand.
 
 ```{r, echo=TRUE, results='hide'}
-model <- keras_model_sequential() %>% 
-  layer_embedding(input_dim = max_features, output_dim = 32) %>% 
-  layer_lstm(units = 32) %>% 
-  layer_dense(units = 46, activation = "softmax")
+
+model <- _______() %>% 
+  
+  # Embedding
+  _______(input_dim = max_features, output_dim = 32) %>% 
+  
+  # LSTM
+  _______(units = 32) %>% 
+  
+  # Dense
+  _______(units = 46, activation = "softmax")
 
 model %>% compile(
   optimizer = "rmsprop", 

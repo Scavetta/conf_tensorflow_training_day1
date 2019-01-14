@@ -107,16 +107,18 @@ summary(model)
 
 ## Data Augmentation
 
+Look at the table at the beginning of this document or in the help file and make some changes to the following function. You'll be able to see your results in the next section.
+
 ```{r dataGen0}
 datagen <- image_data_generator(
-  rescale = 1/255,
-  rotation_range = 40,
-  width_shift_range = 0.2,
-  height_shift_range = 0.2,
-  shear_range = 0.2,
-  zoom_range = 0.2,
-  horizontal_flip = TRUE,
-  fill_mode = "nearest"
+  rescale = _______,
+  rotation_range = _______,
+  width_shift_range = _______,
+  height_shift_range = _______,
+  shear_range = _______,
+  zoom_range = _______,
+  horizontal_flip = _______,
+  fill_mode = _______
 )
 ```
 
@@ -128,6 +130,8 @@ datagen <- image_data_generator(
 ```{r augImages}
 
 fnames <- list.files(train_cats_dir, full.names = TRUE)
+
+# change the index number here to see other images.
 img_path <- fnames[[3]]
 img <- image_load(img_path, target_size = c(150, 150))
 img_array <- image_to_array(img)
@@ -155,6 +159,9 @@ par(op)
 ```
 
 Use augmented images:
+
+We'll use `image_data_generator()` again, but instead of just rescaling to 1/255, we'll add many more modifications. Use `()`, remember the target size and analytical problem for the `class_mode`.
+
 
 ```{r dataGen1}
 

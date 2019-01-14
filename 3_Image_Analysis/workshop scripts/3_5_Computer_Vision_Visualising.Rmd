@@ -55,12 +55,12 @@ model_conv
 
 ```{r getIMG}
 
-img_path <- "~/data/cats_and_dogs/test/cats/cat.1700.jpg"
-img <- image_load(img_path, target_size = c(150, 150))
+img_path <- "/../../usr/share/class/cats_and_dogs/test/cats/cat.1700.jpg"
+img <- _______(img_path, target_size = c(150, 150))
 
 
-img_tensor <- image_to_array(img)
-img_tensor <- array_reshape(img_tensor, c(1, 150, 150, 3))
+img_tensor <- _______(img)
+img_tensor <- _______(img_tensor, c(1, 150, 150, 3))
 img_tensor <- img_tensor / 255
 
 # Preprocesses the image into a 4D tensor
@@ -72,7 +72,7 @@ dim(img_tensor)
 
 ```{r vizIMG}
 
-plot(as.raster(img_tensor[1,,,]))
+plot(_______(img_tensor[1,,,]))
 
 ```
 
@@ -133,6 +133,8 @@ plot_channel(first_layer_activation[1,,,7])
 ```
 
 ## Visualizing Covnnet Filters
+
+(not covered in the workshop)
 
 We can visualize every channel in every intermediate activation. All the following images have been saved to the working directory.
 
