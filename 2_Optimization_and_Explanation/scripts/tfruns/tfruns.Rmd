@@ -1,19 +1,28 @@
 ---
-title: "tfruns"
-output: html_document
+title: "Using the tfruns package"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-
-devtools::install_github("rstudio/tfruns")
-
 ```
 
-## Install and Load Packages
+# {.tabset .tabset-fade .tabset-pills}
+ 
+## Install
 
-```{r eval = TRUE, message = FALSE}
+```{r eval = TRUE, message = FALSE, warning=FALSE}
 
+# Install tfruns
+# devtools::install_github("rstudio/tfruns")
 
 # For deep learning:
 library(keras)
@@ -24,44 +33,12 @@ library(tidyverse)
 library(DT)
 ```
 
-
-## Change labeling convention
-
-```{r}
-# Source directory
-# getOption("tfruns.runs_dir", "runs")
-
-options("tfruns.runs_dir")
-
-options("digits")
-options(digits = 10)
-options("digits")
-
-
-options(tfruns.runs_dir = NULL)
-
-setOption("tfruns.runs_dir", "runs")
-
-unique_run_dir(runs_dir = getOption("tfruns.runs_dir", "runs"),
-  seconds_scale = 0)
-
-Sys.time()
-
-```
-
-
-
-## Training
+## Train
 
 `mnist_mlp_v1.R` trains a Keras model to recognize MNIST digits. To train a model with tfruns, just use the training_run() function in place of the source() function to execute your R script.
 
 ```{r}
-getwd()
-setwd("Extra Examples/tfruns/")
-training_run("mnist_mlp_v1.R")
-
-# unique time stamps:
-training_run("mnist_mlp_v1.R")
+training_run("Boston_reg.R")
 ```
 
 When training is completed, a summary of the run will automatically be displayed if you are within an interactive R session:
@@ -76,25 +53,31 @@ Use `latest_run()` to view the results of the last run (including the path to th
 latest_run()
 ```
 
-The run directory used in the example above is "runs/2019-01-06T14-05-00Z". 
-
-Run directories are by default generated within the "runs" subdirectory of the current working directory, and use a timestamp as the name of the run directory. You can view the report for any given run using the view_run() function:
+Run directories are by default generated within the "runs" subdirectory of the current working directory, and use a timestamp as the name of the run directory. You can view the report for any given run using the `view_run()` function:
 
 ```{r}
-view_run("runs/2019-01-06T14-50-33Z")
-view_run("runs/2019-01-06T14-52-35Z")
+# Enter a run to look at in place of ...
+view_run("runs/...")
+
 ```
 
-#Comparing Runs
+From terminal, run the training in the background
+
+```
+cd Extra\ Examples/tfruns/
+Rscript -e 'tfruns::training_run("boston_reg.R")'
+```
+
+## Compare
 
 - Change the number of units in the first dense layer to 128, 
 - Change the learning_rate from 0.001 to 0.003, and
-- Run 30 rather than 20 epochs.
+- Run 30 rather than 60 epochs.
 
 If we make these changes to the source code we can re-run the script using `training_run()` as before, or we can just save a new script:
 
 ```{r}
-training_run("mnist_mlp_v2.R")
+training_run("Boston_reg.R")
 ```
 
 This will also show us a report summarizing the results of the run, but what we are really interested in is a comparison between this run and the previous one. We can view a comparison via the `compare_runs()` function
@@ -108,10 +91,10 @@ The comparison report shows the model attributes and metrics side-by-side, as we
 Note that compare_runs() will by default compare the last two runs, however you can pass any two run directories you like to be compared.
 
 ```{r}
-compare_runs(c("runs/2019-01-06T14-50-33Z", "runs/2019-01-06T14-52-35Z"))
+compare_runs(c("runs/...", "runs/..."))
 ```
 
-## Using Flags
+## Add Flags
 
 Tuning a model often requires exploring the impact of changes to many hyperparameters. The best way to approach this is generally not by changing the source code of the training script as we did above, but instead by defining flags for key parameters you may want to vary. 
 
@@ -125,128 +108,81 @@ FLAGS <- flags(
 
 # These flags are then used in the definition of our model here:
 
-model <- keras_model_sequential()
-model %>%
-  layer_dense(units = 128, activation = 'relu', input_shape = c(784)) %>%
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 13) %>% 
   layer_dropout(rate = FLAGS$dropout1) %>%
-  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dense(units = 64, activation = "relu") %>% 
   layer_dropout(rate = FLAGS$dropout2) %>%
-  layer_dense(units = 10, activation = 'softmax')
+  layer_dense(units = 1)
 ```
 
 Once we’ve defined flags, we can pass alternate flag values to training_run() as follows:
 
 ```{r}
-training_run('mnist_mlp_v3_flags.R', flags = c(dropout1 = 0.2, dropout2 = 0.2))
+training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = 0.2, dropout2 = 0.2))
 ```
 
 You aren’t required to specify all of the flags (any flags excluded will simply use their default value).
 
-Flags make it very straightforward to systematically explore the impact of changes to 
-hyperparameters on model performance, for example:
+Flags make it very straightforward to systematically explore the impact of changes to hyperparameters on model performance. For example we can reiterate over values using a for loop or the `purrr` package functions:
 
+For a single value
 
 ```{r}
-# for (dropout1 in seq(0.0, 0.4, 0.2)) {
-#   training_run('mnist_mlp_v3_flags.R', flags = c(dropout1 = dropout1))
-# }
+# Tidyverse, reiterate over a single variable:
+seq(0.0, 0.4, 0.2) %>%
+  walk(~ training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = .), run_dir = paste0(gsub(":", "-", Sys.time()), " dropout1=", .)))
+```
 
-# Should name automatically
-for (dropout1 in seq(0.0, 0.4, 0.2)) {
-  training_run('mnist_mlp_v3_flags.R', flags = c(dropout1 = dropout1), run_dir = paste0(gsub(":", "-", Sys.time()), " dropout1=", dropout1))
-}
+For two values. This has already been calculate for you:
 
-# Tidyverse, for one variable:
-seq(0.0, 0.4, 0.2) %>% 
-  walk(~ training_run('mnist_mlp_v3_flags.R', flags = c(dropout1 = .), run_dir = paste0(gsub(":", "-", Sys.time()), " dropout1=", .)))
+```{r eval = FALSE}
+dir.create("Dropout_expt")
 
-
-# Tidyverse, for two variables:
-data.frame(dropout1 = seq(0.0, 0.8, 0.1),
-           dropout2 = seq(0.0, 0.8, 0.1)) %>% 
+# Tidyverse, reiterate over two variables:
+# Here, I'm using a custom labelling convention for run_dir
+data.frame(dropout1 = seq(0.2, 0.8, 0.2),
+           dropout2 = seq(0.2, 0.8, 0.2)) %>% 
   expand.grid() %>% 
   map2(.x = .$dropout1, 
        .y = .$dropout2, 
-       .f = ~ training_run('mnist_mlp_v3_flags.R', flags = c(dropout1 = .x, dropout2 = .y), 
-                      run_dir = paste0(gsub(":", "-", Sys.time()), " dropout1=", .x, " dropout2=", .y)))
-
-
+       .f = ~ training_run('Boston_reg_FLAGS.R', flags = c(dropout1 = .x, dropout2 = .y), 
+                      run_dir = paste0("Dropout_expt/", 
+                                       gsub(":", "-", Sys.time()), 
+                                       " dropout1=", .x, 
+                                       " dropout2=", .y),
+                      view = FALSE))
 
 ```
-Flag values are automatically included in run data with a “flag_” prefix (e.g. flag_dropout1, flag_dropout2).
 
-See the article on training flags for additional documentation on using flags.
-
-## Analyzing Runs
+## Analyze
 
 We’ve demonstrated visualizing and comparing one or two runs, however as you accumulate more runs you’ll generally want to analyze and compare runs many runs. You can use the ls_runs() function to yield a data frame with summary information on all of the runs you’ve conducted within a given directory:
 
 
 ```{r table, echo = FALSE, eval = TRUE}
-ls_runs(runs_dir = "MNIST_Dropout/")[2:9] %>% 
+ls_runs(runs_dir = "Dropout_expt/")[2:9] %>% 
   datatable()
-
-
 ```
-
 
 Plot the results:
 
-```{r line1, echo = FALSE, eval = TRUE}
+```{r heatmap, echo = FALSE, eval = TRUE}
 
-ls_runs(runs_dir = "MNIST_Dropout/") %>% 
+ls_runs(runs_dir = "Dropout_expt/") %>% 
   mutate(flag_dropout2 = as.factor(flag_dropout2),
          flag_dropout1 = as.factor(flag_dropout1)) -> res
 
-ggplot(res, aes(flag_dropout1, eval_acc, col = flag_dropout2, group = flag_dropout2)) +
-  geom_point() +
-  geom_line() +
-  scale_colour_brewer()
-
-
-
-```
-
-
-```{r line2, echo = FALSE, eval = TRUE}
-ggplot(res, aes(flag_dropout2, eval_acc, col = flag_dropout1, group = flag_dropout1)) +
-  geom_point() +
-  geom_line() +
-  scale_colour_brewer() +
-  coord_cartesian(ylim = c(0.96,0.985), expand = 0)
-
-```
-
-
-
-```{r heatmap, echo = FALSE, eval = TRUE}
-ggplot(res, aes(flag_dropout1, flag_dropout2, fill = eval_acc, label = eval_acc*100)) +
+ggplot(res, aes(flag_dropout1, flag_dropout2, fill = eval_mean_absolute_error, label = eval_mean_absolute_error)) +
   geom_tile() +
   geom_text(size = 3, col = "dark red") +
-  scale_fill_viridis_c(limits = c(0.91, 0.98), breaks = seq(0.91, 0.98, 0.01)) +
+  scale_fill_viridis_c(direction = -1) +
   coord_fixed(expand = 0) +
   labs(x = "Dropout Rate 1", 
        y = "Dropout Rate 2", 
-       fill = "Evaluation Accuracy", 
-       title = "Evaluation Accuracy according to dropout rates")
+       fill = "Evaluation MAE", 
+       title = "Evaluation MAE according to dropout rates") +
   theme_classic() +
   theme(axis.line = element_blank())
 ```
 
-
-## Run in background:
-
-From terminal, run the training in the background
-
-```
-cd Extra\ Examples/tfruns/
-Rscript -e 'tfruns::training_run("mnist_mlp_v1.R")'
-```
-
-Save runs as stand-alone websites:
-
-```{r}
-view_run("runs/2019-01-06T14-09-39Z/")
-save_run_view(run_dir = "runs/2019-01-06T14-09-39Z/", filename = "test")
-save_run_comparison()
-```

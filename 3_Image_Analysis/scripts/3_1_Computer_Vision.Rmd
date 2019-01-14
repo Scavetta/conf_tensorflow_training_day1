@@ -20,7 +20,7 @@ library(keras)
 library(tidyverse)
 
 # define the directories:
-source("def_dir.R")
+source("dir_cat_dog.R")
 ```
 
 # Part 1: Data Preparation
@@ -35,8 +35,7 @@ data.frame(Cats = c(length(list.files(train_cats_dir)),
            Dogs = c(length(list.files(train_dogs_dir)),
                     length(list.files(validation_dogs_dir)),
                     length(list.files(test_dogs_dir))),
-           row.names = c("Training", "Validation", "Test")) %>% 
-  knitr::kable()
+           row.names = c("Training", "Validation", "Test"))
 
 
 ```
@@ -140,6 +139,25 @@ plot(history)
 
 # Save the model
 
-```{r modelSave}
-model %>% save_model_hdf5("cats_and_dogs_small_1.h5")
+```{r modelSave eval = FALSE}
+model %>% save_model_hdf5("cats_and_dogs_small_convnet.h5")
 ```
+
+# Evaluation
+
+```{r}
+
+model_conv <- load_model_hdf5("cats_and_dogs_small_convnet.h5")
+
+test_generator <- flow_images_from_directory(
+  test_dir,
+  test_datagen,
+  target_size = c(150, 150),
+  batch_size = 20,
+  class_mode = "binary"
+)
+
+model_conv %>% evaluate_generator(test_generator, steps = 50)
+
+```
+

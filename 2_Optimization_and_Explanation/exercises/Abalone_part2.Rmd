@@ -1,0 +1,155 @@
+---
+title: "Abalone data set"
+subtitle: "Deep Learning Regression, with optimization"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+```
+
+# Session 2: Exercise {.tabset .tabset-fade .tabset-pills}
+
+
+## Obtain data &  Prepare data:
+
+In session 1 we already saw the abalone data set. Here, we'll just read it in and take a look.
+
+```{r}
+# We'll just make the data matrices right away
+read.csv("data/Abalone_100/abalone_data.csv") %>% 
+  mutate_all(scale) %>% 
+  as.matrix() %>% 
+  unname()  -> abalone_data
+
+# The labels will be an integer
+abalone_labels <- read.csv("data/Abalone_100/abalone_labels_cont.csv")
+abalone_labels <- abalone_labels$Rings
+```
+
+## Part 2: 3 sets
+
+```{r}
+train_n <- round(0.8*nrow(abalone_data))
+
+set.seed(136)
+train_index <- sample(seq_len(nrow(abalone_data)), train_n)
+
+# Training set
+train_data <- unname(abalone_data[train_index,])
+train_labels <- abalone_labels[train_index]
+
+# Test Set
+test_data <- unname(abalone_data[-train_index,])
+test_labels <- abalone_labels[-train_index]
+
+# Validation Set
+set.seed(136)
+index <- 1:(0.2*nrow(train_data))
+
+val_data <- train_data[index,]
+train_data <- train_data[-index,]
+
+val_labels <- train_labels[index]
+train_labels <- train_labels[-index]
+```
+
+```{r}
+str(train_data)
+```
+
+## Part 3: Regression
+
+### Training
+
+```{r}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
+  layer_dense(units = 1) 
+
+```
+
+### Compile
+
+```{r}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "mse",
+  metrics = "mae"
+)
+```
+
+### Train
+
+```{r}
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 50,
+  batch_size = 64,
+  validation_data = list(val_data, val_labels)
+)
+```
+
+This new loss function is mathematically the same as `categorical_crossentropy`. It just has a different interface. When we look at our metrics below we'll use the original model, that accessed the vectorized data. If you want to use `network_int` make sure you use the original integer labels of the test set, `test_labels`, not `test_labels_vec`. 
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+## Model Evaluation:
+
+```{r runZ_2}
+result <- network %>% 
+  evaluate(test_data, test_labels)
+```
+
+### Results:
+
+```{r runZ_3}
+MAE <- result$mean_absolute_error
+```
+
+
+```{r resultsZ}
+result
+```
+
+The MAE is `r MAE`.
+
+```{r echo = FALSE}
+
+data.frame(Prediction = predict(network, test_data),
+           Actual = test_labels) -> allResults 
+
+cor(allResults$Prediction, allResults$Actual)
+
+allResults %>% 
+  ggplot(aes(Actual, Prediction)) +
+  geom_point(shape = 16, alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, col = "dark red") +
+  coord_fixed(xlim = c(0,30), ylim = c(0,30), expand = 0, clip = "off") +
+  theme_classic() +
+  theme(axis.text = element_text(colour = "black"),
+        strip.background = element_rect(colour = NA, fill = "gray92"))
+
+
+
+```
+
+The correlation between actual and predicted is `r cor(allResults$Prediction, allResults$Actual)`.
+

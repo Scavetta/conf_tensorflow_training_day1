@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 # Initialize package
 library(keras)
@@ -69,20 +69,20 @@ Define
 
 ```{r}
 network <- keras_model_sequential() %>% 
-    layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
-    layer_dense(units = 64, activation = "relu") %>% 
-    layer_dense(units = 1) 
+  layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 1) 
 
 ```
 
 Compile
 
 ```{r}
- network %>% compile(
-    optimizer = "rmsprop", 
-    loss = "mse", 
-    metrics = "mae"
-  )
+network %>% compile(
+  optimizer = "rmsprop", 
+  loss = "mse", 
+  metrics = "mae"
+)
 
 ```
 
@@ -90,14 +90,14 @@ Train (`fit()`)
 
 ```{r runZ, echo = F, results = 'hide', cache = T}
 # Train it on the entirety of the data.
-network %>% 
+history <- network %>% 
   fit(
     train_data, 
-              train_targets,
-              epochs = 80, 
-              batch_size = 16, 
-              verbose = 0
-    )
+    train_targets,
+    epochs = 80, 
+    batch_size = 16, 
+    verbose = TRUE
+  )
 
 ```
 

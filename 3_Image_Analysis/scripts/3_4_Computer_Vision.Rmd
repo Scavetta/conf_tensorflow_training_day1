@@ -1,5 +1,5 @@
 ---
-title: "Computer Vision: Fine-tuning"
+title: "Computer Vision: Fine-tuning pre-built model"
 author: "Rick Scavetta"
 output: html_document
 ---
@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 library(keras)
 
 # define the directories:
-source("def_dir.R")
+source("dir_cat_dog.R")
 ```
 
 # Obtain a pre-trained convnet base
@@ -47,30 +47,29 @@ cat(length(model$trainable_weights), " trainable weights before freezing.\n")
 
 ```
 
-
 ```{r summaryConv}
 conv_base
 ```
-
-
 
 # unfreezing:
 
 ```{r}
 # Unfreezing previously frozen layers
 unfreeze_weights(conv_base, from = "block3_conv1")
-
 ```
 
 # Fine-tuning
 
-```{r}
+As previously, I've saved the output for you.
+
+```{r eval = FALSE}
 # Fine-tuning the model
 model %>% compile(
   loss = "binary_crossentropy",
   optimizer = optimizer_rmsprop(lr = 1e-5),
   metrics = c("accuracy")
 )
+
 history <- model %>% fit_generator(
   train_generator,
   steps_per_epoch = 100,
@@ -80,7 +79,33 @@ history <- model %>% fit_generator(
 )
 ```
 
-# 
+# Save history and model
+
+```{r eval = FALSE}
+
+# save(history, file = "history_vgg16_fine.RData")
+# model %>% save_model_hdf5("cats_and_dogs_vgg16_fine.h5")
+
+```
+
+```{r}
+
+# you can download the file here, but the connection may be slow:
+# download.file("http://scavetta.academy/models/cats_and_dogs_vgg16_fine.h5", "cats_and_dogs_vgg16_fine.h5")
+# or in terminal:
+# wget http://scavetta.academy/models/cats_and_dogs_vgg16_fine.h5
+
+# For the workshop it will be provided for you
+load("history_vgg16_fine.RData")
+
+
+
+
+plot(history)
+```
+
+
+# Evaluation
 
 ```{r}
 
@@ -96,3 +121,4 @@ model %>% evaluate_generator(test_generator, steps = 50)
 
 ```
 
+We should've have stopped training earlier, since the validation loss increases after about 30 epochs. 
