@@ -56,9 +56,8 @@ latest_run()
 Run directories are by default generated within the "runs" subdirectory of the current working directory, and use a timestamp as the name of the run directory. You can view the report for any given run using the `view_run()` function:
 
 ```{r}
-# Enter a run to look at in place of ...
-view_run("runs/...")
-
+# Enter a run to look at:
+view_run("runs/2019-01-14T14-02-02Z")
 ```
 
 From terminal, run the training in the background

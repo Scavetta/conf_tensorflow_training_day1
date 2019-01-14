@@ -1,7 +1,14 @@
 ---
 title: "Case Study 2: Reuters -- Extra Variants"
-author: "Rick Scavetta" 
-output: html_document
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
 ---
 
 ```{r, setup, context="setup", include = FALSE}
@@ -22,20 +29,17 @@ plot_bkg <- "grey70"
 # install_keras() # for cpu
 ```
 
-We already say the Reuters case study as described in the book. Let's take deeper look at some of the variants described in the exercises.
+# {.tabset .tabset-fade .tabset-pills}
 
-# Part 1: Data Preparation
+## Data Preparation
 
-## Obtain and prepare data
-
-We already examined the data in the previous script. Here, we'll just prepare the data as before, for use with binary crossentropy. If you're unfamiliar with what's happening here, please refer to the main script. 
+We already examined the data in the previous script. Here, we'll just prepare the data as before.
 
 ```{r}
 source("Boston_Z.R")
 ```
 
-
-```{r data, warning = FALSE, echo = FALSE, context = "data", cache = TRUE}
+```{r data, warning = FALSE, context = "data", cache = TRUE}
 # Prepare the validation set
 index <- 1:101
 
@@ -46,7 +50,7 @@ val_targets <- train_targets[index]
 train_targets <- train_targets[-index]
 ```
 
-# Variant 1: Larger or smaller layers
+## Variant 1: Larger or smaller layers
 
 Here, we'll try the whole range from $2^2 = 4$ to $2^{6} = 64$ neurons in each of our hidden layers.
 
@@ -175,7 +179,7 @@ ggplot(justModels_powerto, aes(log2(neurons), .x..i..)) +
         legend.key = element_rect(fill = plot_bkg))
 ```
 
-# Variant 2: Changing the number of layers layers
+## Variant 2: Changing the number of layers layers
 
 So now we have an idea that 16 neurons is appropriate. Do you think it would help to change the number of layers? I'm going to expand on the `build_model()` function I established earlier to allow us to define how many hidden layers.
 
