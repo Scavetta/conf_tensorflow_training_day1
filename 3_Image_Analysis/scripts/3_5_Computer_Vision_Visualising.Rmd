@@ -12,10 +12,12 @@ output:
   toc_depth: 2
 ---
 
-# Data sources
+# {.tabset .tabset-fade .tabset-pills}
+
+## Data sources
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = FALSE)
 
 # Initialize package
 library(keras)
@@ -24,7 +26,7 @@ library(keras)
 source("dir_cat_dog.R")
 ```
 
-# Obtain a pre-trained networks
+## Pre-trained Small
 
 ```{r getModel}
 
@@ -33,7 +35,7 @@ model_conv
 
 ```
 
-## view
+## View
 
 ```{r getIMG}
 
@@ -50,7 +52,7 @@ dim(img_tensor)
 
 ```
 
-# plot image:
+## Plot Image
 
 ```{r vizIMG}
 
@@ -58,7 +60,7 @@ plot(as.raster(img_tensor[1,,,]))
 
 ```
 
-# Instantiating a model from an input tensor and a list of output tensors
+Instantiating a model from an input tensor and a list of output tensors
 
 ```{r act0}
 
@@ -67,7 +69,7 @@ activation_model <- keras_model(inputs = model_conv$input, outputs = layer_outpu
 
 ```
 
-# Running the model in predict mode
+Running the model in predict mode
 
 ```{r act1}
 
@@ -84,7 +86,9 @@ dim(first_layer_activation)
 
 ```
 
-# Function to plot a channel
+## Plot Channels
+
+Function to plot a channel
 
 ```{r vizFUN}
 
@@ -96,7 +100,7 @@ plot_channel <- function(channel) {
 
 ```
 
-# Plotting the second channel
+Plotting the second channel
 
 ```{r viz2}
 
@@ -104,7 +108,7 @@ plot_channel(first_layer_activation[1,,,2])
 
 ```
 
-# Visualizing the seventh channel
+Visualizing the seventh channel
 
 ```{r viz7}
 
@@ -112,11 +116,11 @@ plot_channel(first_layer_activation[1,,,7])
 
 ```
 
-# Visualizing every channel in every intermediate activation
+Visualizing every channel in every intermediate activation
 
 These have been saved to the working directory.
 
-```{r vizAll}
+```{r vizAll, eval = FALSE}
 
 image_size <- 58
 images_per_row <- 16
@@ -141,9 +145,11 @@ for (i in 1:8) {
 
 ```
 
-# Visualizing the Covnnet filters:
+## Covnnet Filters
 
-# Defining the loss tensor for filter visualization (Listing 5.32)
+Some additional visualization funciton from the Deep Lerning with R book
+
+Defining the loss tensor for filter visualization (Listing 5.32)
 
 ```{r}
 
@@ -161,10 +167,9 @@ loss <- k_mean(layer_output[,,,filter_index])
 
 ```
 
-# Obtaining the gradient of the loss with regard to the input (Listing 5.33)
+Obtaining the gradient of the loss with regard to the input (Listing 5.33)
 
 The call to k_gradients returns an R list of tensors (of size 1 in this case). Hence, you keep only the first element—which is a tensor.
-
 
 ```{r}
 
@@ -173,7 +178,7 @@ grads <- k_gradients(loss, model$input)[[1]]
 
 ```
 
-# Gradient-normalization trick (Listing 5.34)
+Gradient-normalization trick (Book Listing 5.34)
 
 ```{r}
 
@@ -182,7 +187,7 @@ grads <- grads / (k_sqrt(k_mean(k_square(grads))) + 1e-5)
 
 ```
 
-# Fetching output values given input values (Listing 5.35)
+Fetching output values given input values (Book Listing 5.35)
 
 ```{r}
 
@@ -192,7 +197,7 @@ c(loss_value, grads_value) %<-%
 
 ```
 
-# Loss maximization via stochastic gradient descent (Listing 5.36 )
+Loss maximization via stochastic gradient descent (Book Listing 5.36 )
 
 ```{r}
 # Starts from a gray image with some noise
@@ -210,7 +215,7 @@ for (i in 1:40) {
 
 ```
 
-# Utility function to convert a tensor into a valid image (Listing 5.37)
+Utility function to convert a tensor into a valid image (Book Listing 5.37)
 
 ```{r}
 deprocess_image <- function(x) {
@@ -230,7 +235,7 @@ deprocess_image <- function(x) {
 }
 ```
 
-# Function to generate filter visualizations
+Function to generate filter visualizations
 
 ```{r}
 generate_pattern <- function(layer_name, filter_index, size = 150) {
@@ -264,7 +269,7 @@ generate_pattern <- function(layer_name, filter_index, size = 150) {
 
 ```
 
-# Generating a grid of all filter response patterns in a layer (Listing 5.39)
+Generating a grid of all filter response patterns in a layer (Book Listing 5.39)
 
 ```{r}
 library(grid)

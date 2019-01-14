@@ -90,10 +90,10 @@ Use `image_data_generator()`
 
 ```{r}
 
+test_datagen <- image_data_generator(rescale = 1/255)
+
 train_datagen <- image_data_generator(rescale = 1/255)
 validation_datagen <- image_data_generator(rescale = 1/255)
-
-
 
 train_generator <- flow_images_from_directory(
   train_dir,
@@ -123,7 +123,8 @@ str(batch)
 
 ## Train
 
-```{r modelTrain}
+
+```{r}
 
 history <- model %>% fit_generator(
   train_generator,
@@ -135,6 +136,8 @@ history <- model %>% fit_generator(
 
 ```
 
+
+
 View history
 
 ```{r historyView}
@@ -143,8 +146,8 @@ plot(history)
 
 ## Save the model
 
-```{r modelSave eval = FALSE}
-model %>% save_model_hdf5("cats_and_dogs_small_convnet.h5")
+```{r modelSave}
+# model %>% save_model_hdf5("cats_and_dogs_small_convnet.h5")
 ```
 
 ## Evaluation

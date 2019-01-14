@@ -12,10 +12,12 @@ output:
   toc_depth: 2
 ---
 
-# Data sources
+# {.tabset .tabset-fade .tabset-pills}
+
+## Data sources
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = FALSE)
 
 # Initialize package
 library(keras)
@@ -24,7 +26,9 @@ library(keras)
 source("dir_cat_dog.R")
 ```
 
-# Obtain a pre-trained convnet base
+## Pre-trained convnets
+
+Obtain a pre-trained convnet
 
 ```{r getConv}
 conv_base <- application_vgg16(
@@ -59,14 +63,14 @@ cat(length(model$trainable_weights), " trainable weights before freezing.\n")
 conv_base
 ```
 
-# unfreezing:
+### Unfreezing
 
 ```{r}
 # Unfreezing previously frozen layers
 unfreeze_weights(conv_base, from = "block3_conv1")
 ```
 
-# Fine-tuning
+## Fine-tuning
 
 As previously, I've saved the output for you.
 
@@ -87,7 +91,7 @@ history <- model %>% fit_generator(
 )
 ```
 
-# Save history and model
+### Save
 
 ```{r eval = FALSE}
 
@@ -106,14 +110,11 @@ history <- model %>% fit_generator(
 # For the workshop it will be provided for you
 load("history_vgg16_fine.RData")
 
-
-
-
 plot(history)
 ```
 
 
-# Evaluation
+## Evaluation
 
 ```{r}
 
