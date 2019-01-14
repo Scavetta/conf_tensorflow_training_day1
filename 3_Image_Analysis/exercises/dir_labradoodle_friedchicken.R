@@ -1,6 +1,10 @@
 # Data Directories for labradoodle_friedchicken
 
-base_dir <- "~/data/labradoodle_friedchicken"
+# For local use:
+# base_dir <- "~/data/labradoodle_friedchicken"
+
+# For RStudio::Conf
+base_dir <- "/../../usr/share/class/labradoodle_friedchicken"
 
 # Train sets:
 train_dir <- file.path(base_dir, "train")

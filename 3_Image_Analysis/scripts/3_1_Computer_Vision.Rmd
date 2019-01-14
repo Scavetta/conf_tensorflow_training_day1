@@ -83,6 +83,8 @@ Use `image_data_generator()`
 train_datagen <- image_data_generator(rescale = 1/255)
 validation_datagen <- image_data_generator(rescale = 1/255)
 
+
+
 train_generator <- flow_images_from_directory(
   train_dir,
   train_datagen,

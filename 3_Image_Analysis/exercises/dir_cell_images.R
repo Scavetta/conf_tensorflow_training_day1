@@ -1,6 +1,10 @@
 # Data Directories for cell_images
 
-base_dir <- "~/data/cell_images"
+# For local use:
+# base_dir <- "~/data/cell_images"
+
+# For RStudio::Conf
+base_dir <- "/../../usr/share/class/cell_images"
 
 # Train sets:
 train_dir <- file.path(base_dir, "train")
