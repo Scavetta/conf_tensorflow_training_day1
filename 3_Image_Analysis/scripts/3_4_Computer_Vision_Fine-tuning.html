@@ -378,6 +378,31 @@ $(document).ready(function () {
 
 <div id="section" class="section level1 tabset tabset-fade tabset-pills">
 <h1></h1>
+<div id="learning-goals-functions" class="section level2">
+<h2>Learning Goals &amp; Functions</h2>
+<div id="learning-goals" class="section level3">
+<h3>Learning Goals</h3>
+<p>Fine-tune pre-trained convnets.</p>
+</div>
+<div id="functions-in-this-session" class="section level3">
+<h3>Functions in this session:</h3>
+<p>After freezing large chunks of our convnet, we can choose to unfree specific components.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Function</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>unfreeze_weights()</code></td>
+<td align="left">Unfreeze specific weights for training.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="data-sources" class="section level2">
 <h2>Data sources</h2>
 </div>
@@ -420,7 +445,7 @@ unfreeze_weights(conv_base, from = &quot;block3_conv1&quot;)</code></pre>
 model %&gt;% compile(
   loss = &quot;binary_crossentropy&quot;,
   optimizer = optimizer_rmsprop(lr = 1e-5),
-  metrics = c(&quot;accuracy&quot;)
+  metrics = &quot;accuracy&quot;
 )
 
 history &lt;- model %&gt;% fit_generator(

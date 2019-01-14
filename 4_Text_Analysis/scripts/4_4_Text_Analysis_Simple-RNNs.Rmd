@@ -21,6 +21,20 @@ library(tidyverse)
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Understand basic concept of Recurrent Neural Networks (RNNs).
+
+### Functions in this session:
+
+Here we'll just make some models and explore what an RNN is. 
+
+| Function             | Description                  |
+|:---------------------|:-----------------------------|
+| `layer_simple_rnn()` | Add an RNN layer to a model. |
+
 ## Setup
 
 Here is a toy example of an RNN to give an idea of what's happening.

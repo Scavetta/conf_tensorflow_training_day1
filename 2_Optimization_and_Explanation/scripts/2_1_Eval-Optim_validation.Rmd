@@ -1,6 +1,6 @@
 ---
-title: "Introduction to Deep Learning"
-subtitle: "Boston, regression, hold-out validation"
+title: "Evaluation and Optimization"
+subtitle: "The validation set"
 author: "Rick Scavetta"
 output:
   html_document:
@@ -22,21 +22,26 @@ library(tidyverse)
 
 # {.tabset .tabset-fade .tabset-pills}
 
-## Intro
+## Learning Goals & Functions
 
 ### Learning Goals
 
-Hold-out validation
+Understand how to use a validation set to assess overfitting. We'll look at:
+
+- Simple hold-out validation, and
+- k-fold cross validation
+
+We'll perform k-fold cross-validation manually since there is not standard function.
 
 ### Functions in this session:
 
-Basic `keras` functions:
+Basic `keras` functions as we've seen before.
 
 Inside the `fit()` function, there are two arguments we can use to define a simple validation set: 
 
-| Argument | Use |
-|:---------|:-----|
-| `validation_split` | Specify a value between 0 - 1. This is the fraction of the training data that will be used for validation. The validation data is selected from the _last_ samples in the x and y data provided, before shuffling. |
+| Argument           | Use                                                                                                                                               |
+|:-------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `validation_split` | The fraction, [0, 1], of the training data that will be used for validation, selected from the _last_ samples.                                    |
 | `validation_data`  | Data on which to evaluate the loss and any model metrics at the end of each epoch, called as a list `(x_val, y_val)`. Overrides validation_split. |
 
 ## Part 1: Data Preparation
@@ -87,6 +92,7 @@ This looks troubling... can you see why?
 ### Examine structure
 
 ```{r message = FALSE}
+# install.packages("tabplot")
 library(tabplot)
 tableplot(as.data.frame(train_data), nBins = 404, numMode = "ml")
 ```

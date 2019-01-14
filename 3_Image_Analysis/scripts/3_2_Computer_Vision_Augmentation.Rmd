@@ -25,6 +25,29 @@ source("dir_cat_dog.R")
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Learn how to apply image augmentation to avoid overfitting.
+
+### Functions in this session:
+
+Here, we'll see arguments inside `image_data_generator()` 
+
+| Argument              | Value       |
+|:----------------------|:------------|
+| `rescale`             | `1/255`     |
+| `rotation_range`      | `40`        |
+| `width_shift_range`   | `0.2`       |
+| `height_shift_range`  | `0.2`       |
+| `shear_range`         | `0.2`       |
+| `zoom_range`          | `0.2`       |
+| `horizontal_flip`     | `TRUE`      |
+| `fill_mode`           | `"nearest"` |
+
+Otherwise, the model and functions are as before.
+
 ## Data
 
 ```{r dataGet}
@@ -149,8 +172,6 @@ datagen <- image_data_generator(
 Note that the validation data shouldn’t be augmented!
 
 ```{r dataGen2}
-test_datagen <-
-  image_data_generator(rescale = 1/255)
 
 train_generator <- flow_images_from_directory(
   train_dir,
@@ -208,6 +229,9 @@ plot(history)
 ```{r}
 
 model_aug <- load_model_hdf5("cats_and_dogs_augmentation.h5")
+
+# Test generator function:
+test_datagen <- image_data_generator(rescale = 1/255)
 
 test_generator <- flow_images_from_directory(
   test_dir,

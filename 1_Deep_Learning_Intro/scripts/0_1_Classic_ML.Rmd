@@ -1,5 +1,5 @@
 ---
-title: "0.1 The Boston House Price Dataset"
+title: "The Boston House Price Dataset"
 subtitle: "Classic Machine Learning Approaches"
 author: "Rick Scavetta"
 output:
@@ -25,9 +25,11 @@ library(kableExtra)
 
 # {.tabset .tabset-fade .tabset-pills}
 
-## Functions & Take-home Message
+## Introduction
 
-We're going to focus on deep learning, but I want to put it in context with these methods that you should already be familiar with. You should be familiar with the concepts presented in this section.
+Although this workshop focuses on deep learning, I want to put it into context with some methods that you should already be familiar with.
+
+In this script, we'll also get familiar with the Boston Housing Price dataset.
 
 ## Load data
 
@@ -145,7 +147,6 @@ data.frame(coef = round(fit_lm$coefficients,2)) %>%
   geom_point() +
   scale_x_continuous("r", limits = c(-4.2,4.2), expand = c(0,0))
 ```
-
 
 
 ```{r}

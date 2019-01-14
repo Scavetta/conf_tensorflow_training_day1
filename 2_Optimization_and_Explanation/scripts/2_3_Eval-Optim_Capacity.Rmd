@@ -1,6 +1,6 @@
 ---
-title: "Case Study 2: Reuters -- Extra Variants"
-author: "Rick Scavetta"
+title: "Evaluation and Optimization"
+subtitle: "Reducing Capacity"
 output:
   html_document:
   fig_caption: true
@@ -30,6 +30,23 @@ plot_bkg <- "grey70"
 ```
 
 # {.tabset .tabset-fade .tabset-pills}
+
+## Learning Goals & Functions
+
+### Learning Goals
+
+In this script we'll test the performance of models having different capacities. 
+
+### Functions in this session:
+
+#### Reduce Capacity
+
+Use basic `keras` functions that we've seen already:
+
+| Function                  | Use                                                                             |
+|:--------------------------|:--------------------------------------------------------------------------------|
+| `layer_dense(units = xx)` | Change the number of nodes by adjusting the `units` argument in `layer_dense()` |
+| `layer_dense()`           | Reduce the number of hidden layers                                              |
 
 ## Data Preparation
 

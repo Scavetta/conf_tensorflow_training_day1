@@ -1,7 +1,6 @@
 ---
 title: "Reuters -- Single-label, Multi-class Classification with Text"
 subtitle: "Scenario 3: GloVe, pre-trained word embeddings"
-author: "Rick Scavetta"
 output:
   html_document:
   fig_caption: true
@@ -21,6 +20,23 @@ library(tidyverse)
 ```
 
 # {.tabset .tabset-fade .tabset-pills}
+
+## Learning Goals & Functions
+
+### Learning Goals
+
+Text analysis using pre-trianed word embeddings, o.e. from GloVe.
+
+### Functions in this session:
+
+Here we'll see some basic ways of working with text, using one-hot encoding.
+
+| Function                                   | Description                                                         |
+|:-------------------------------------------|:--------------------------------------------------------------------|
+| `text_tokenizer()`, `fit_text_tokenizer()` | Produce tokens environment from text.                               |
+| `texts_to_sequences()`                     | Produce vectorized values from text.                                |
+| `get_layer()`                              | Access a specific layer in a model                                  |  
+| `set_weights()`                            | Manually set the weights, from e.g. a pre-trained embedding matrix. |
 
 ## Obtain data
 
@@ -44,7 +60,7 @@ train_data %>%
   unlist() -> texts
 ```
 
-### Tokenize the data
+## Tokenize the data
 
 Let's vectorize the texts we collected, and prepare a training and validation split. We will merely be using the concepts we introduced earlier in this section.
 
@@ -153,7 +169,7 @@ y_val <- labels[validation_indices]
 
 ## GloVe word embeddings
 
-The GloVE pretrained word embeddings are derived from the 2014 English Wikipedia. It can be downloaded [here](https://nlp.stanford.edu/projects/glove/). The file to look for is `glove.6B.zip` (822MB). In it you'll find  100-dimensional embedding vectors for 400,000 words (or non-word tokens).
+The GloVE pretrained word embeddings are derived from the 2014 English Wikipedia. It can be downloaded at [here](https://nlp.stanford.edu/projects/glove/). The file to look for is `glove.6B.zip` (822MB). In it you'll find  100-dimensional embedding vectors for 400,000 words (or non-word tokens).
 
 Download and unzip the file (it will just a be a `txt` file) and place it in the _pretrained_ folder.
 
@@ -189,6 +205,7 @@ Here we'll use a nice trick to work with the embeddings by making them into an e
 ```{r}
 
 embeddings_index <- new.env(hash = TRUE, parent = emptyenv())
+
 for (i in 1:length(lines)) {
   line <- lines[[i]]
   values <- strsplit(line, " ")[[1]]
@@ -200,7 +217,7 @@ for (i in 1:length(lines)) {
 # 400000
 ```
 
-This results in `r length(embeddings_index)` word vectors. i.e. the 100-dimensional embedding vectors for 400,000 words.
+i.e. the 100-dimensional embedding vectors for 400,000 words.
 
 ```{r}
 embeddings_index[["said"]]
@@ -303,8 +320,7 @@ model %>% compile(
 
 history <- model %>% fit(
   x_train, y_train,
-  epochs = 20
-  ,
+  epochs = 20,
   batch_size = 32,
   validation_data = list(x_val, y_val)
 )

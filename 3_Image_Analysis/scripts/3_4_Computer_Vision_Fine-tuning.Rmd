@@ -14,6 +14,20 @@ output:
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Fine-tune pre-trained convnets.
+
+### Functions in this session:
+
+After freezing large chunks of our convnet, we can choose to unfree specific components.
+
+| Function              | Description                               |
+|:----------------------|:------------------------------------------|
+| `unfreeze_weights()`    | Unfreeze specific weights for training. |
+
 ## Data sources
 
 ```{r setup, include=FALSE}
@@ -79,7 +93,7 @@ As previously, I've saved the output for you.
 model %>% compile(
   loss = "binary_crossentropy",
   optimizer = optimizer_rmsprop(lr = 1e-5),
-  metrics = c("accuracy")
+  metrics = "accuracy"
 )
 
 history <- model %>% fit_generator(

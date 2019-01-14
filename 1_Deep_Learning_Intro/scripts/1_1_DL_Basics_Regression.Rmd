@@ -20,34 +20,26 @@ library(keras)
 library(tidyverse)
 ```
 
-# Session 1 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Functions & Take-home Message
-
-### Learning Goals
-
-Developing deep learning to two core questions in supervised learning: Classification and Regression. 
-
-### Outline
-
-- What is a tensor and why use it?
-- What is keras and what is its relationship to TensorFlow?
-- What is the deep in deep learning? ANNs and densely-connected networks.
-- The math of deep learning: Basics of matrix algebra, gradient descent, backpropagarion, chain rule.
-- The four stages of Deep learning.
-- Parameters and hyper-parameter.
-- Functions distinguishing classification and regression: loss and optimizer functions.
 
 ### Functions in this session:
 
 Basic `keras` functions:
 
-| Function                   | Description                                       |
-|:---------------------------|:--------------------------------------------------| 
-| [`keras_model_sequential()`](https://www.rdocumentation.org/packages/keras/versions/2.2.0/topics/keras_model_sequential) | Keras network (model) composed of a linear stack of layers. |
-| `layer_dense()`	           | Add a densely-connected NN layer to an output.    |
-| `compile()`                | Configure a Keras model for training.             |
-| `fit()`                    | Train a Keras model.                              |
+| Function                   | Description                                                 |
+|:---------------------------|:------------------------------------------------------------| 
+| `%<-%`                     | Assign-elements-from-a-list operator                        |
+| `dataset_boston_housing()` | Built-in Boston House Price dataset.                        |
+| `keras_model_sequential()` | Keras network (model) composed of a linear stack of layers. |
+| `layer_dense()`	           | Add a densely-connected NN layer to an output.              |
+| `compile()`                | Configure a Keras model for training.                       |
+| `fit()`                    | Train a Keras model.                                        |
+| `predict()`                | Apply a trained model to test data.                         |
+| `evaluate()`               | Calculate model evaluation metrics on test data             | 
+| `save_model_hdf5()`        | Save a model.                                               |
+| `load_model_hdf5()`        | Load a model.                                               |
 
 ### Take-home Message
 
@@ -166,25 +158,15 @@ where $\hat{y_i}$ is the predicted value, given in our last single-unit layer, a
 
 ## Training
 
-We need to decide how many epochs to run our model plus the size and the number of the hidden layers.we'll train our model on the training data, then look at its performance on the test data:
+We need to decide how many epochs to run our model plus the size and the number of the hidden layers.we'll train our model on the training data, then look at its performance on the test data/
 
-```{r runZ_1, echo = FALSE}
-# Train the model.
-network %>% 
-  fit(train_data, 
-      train_targets,
-      epochs = 120, 
-      batch_size = 16, 
-      verbose = TRUE)
-```
-
-`verbose = TRUE` prints all the values to the screen. That's fine, but we can also save the results to an object as it trains:
+`verbose = TRUE`, by defaule, so it prints all the values to the screen. That's fine, but we can also save the results to an object as it trains:
 
 ```{r}
 history <- network %>% 
   fit(train_data, 
       train_targets,
-      epochs = 120, 
+      epochs = 100, 
       batch_size = 16)
 
 ```
@@ -242,7 +224,42 @@ read.csv("../data/ClassicML.csv") %>%
 
 ## Examine your model
 
-Training a model simply means that we've defined the weights and bias matrices for each layer. We can save these values using:
+Training a model simply means that we've defined the weights and bias matrices for each layer. We have access to all values in the model, so let's take a look and understand exactly what's happening
+
+```{r}
+all_weights <- get_weights(network)
+str(all_weights)
+```
+
+The dimensions match what we saw in the summary of the model above.
+
+```{r}
+sapply(all_weights, dim)
+```
+
+We can manually use the weights and biases to calculate the result to full understand what the model is doing. Let's see if we can undertand how we went from the firs test instance to the result.
+
+```{r}
+relu <- function(x) {
+  x[x < 0] <- 0
+  return(x)
+}
+
+# First layer results
+relu(pracma::dot(test_data[1,], all_weights[[1]]) + all_weights[[2]]) -> output_layer_1
+
+# Second layer results
+relu(pracma::dot(t(output_layer_1), all_weights[[3]]) + all_weights[[4]]) -> output_layer_2
+
+# Thrid layer results
+pracma::dot(t(output_layer_2), all_weights[[5]]) + all_weights[[6]] 
+```
+
+This matches the prediction above. Now that we can see what is actually happening. can you see why I began with discussing GLMs?
+
+### Saving and loading models
+
+We can save these values using:
 
 ```{r eval = FALSE}
 network %>% 
@@ -251,15 +268,6 @@ network %>%
 
 If we want to open a saved model, we can use:
 
-```{r}
+```{r eval = FALSE}
 model <- load_model_hdf5("Boston_Regression_Model.h5")
 ```
-
-We have access to all values in the model:
-
-```{r}
-layer_outputs <- lapply(model$layers[1:8], function(layer) layer$output)
-activation_model <- keras_model(inputs = model$input, outputs = layer_outputs)
-```
-
-

@@ -378,8 +378,49 @@ $(document).ready(function () {
 
 <div id="section" class="section level1 tabset tabset-fade tabset-pills">
 <h1></h1>
-<div id="data-sources" class="section level2">
-<h2>Data sources</h2>
+<div id="learning-goals-functions" class="section level2">
+<h2>Learning Goals &amp; Functions</h2>
+<div id="learning-goals" class="section level3">
+<h3>Learning Goals</h3>
+<p>Access and use pre-trained convnets</p>
+</div>
+<div id="functions-in-this-session" class="section level3">
+<h3>Functions in this session:</h3>
+<p>Here, we’ll use functions specific to obtaining and using pre-trained convnets.</p>
+<table>
+<colgroup>
+<col width="19%"></col>
+<col width="80%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Function</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>application_vgg16()</code></td>
+<td align="left">Add a pre-trained <code>vgg16</code> convnet using weights from imagenet.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>extract_features()</code></td>
+<td align="left">Custom function to extract features using the <code>vgg16</code> network form images.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>array_reshape()</code></td>
+<td align="left">Reshape feature to conform to our network tensor input shape.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>freeze_weights()</code></td>
+<td align="left">Freeze specific weights in a pre-trained model so that they are not updated during training.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
 <pre class="r"><code># define the directories:
 source(&quot;dir_cat_dog.R&quot;)</code></pre>
 </div>
@@ -400,6 +441,7 @@ batch_size &lt;- 20
 extract_features &lt;- function(directory, sample_count) {
   features &lt;- array(0, dim = c(sample_count, 4, 4, 512))
   labels &lt;- array(0, dim = c(sample_count))
+  
   generator &lt;- flow_images_from_directory(
     directory = directory,
     generator = datagen,
@@ -407,7 +449,9 @@ extract_features &lt;- function(directory, sample_count) {
     batch_size = batch_size,
     class_mode = &quot;binary&quot;
   )
+  
   i &lt;- 0
+  
   while(TRUE) {
     batch &lt;- generator_next(generator)
     inputs_batch &lt;- batch[[1]]
@@ -451,7 +495,7 @@ model</code></pre>
 <pre class="r"><code>model %&gt;% compile(
   optimizer = optimizer_rmsprop(lr = 2e-5),
   loss = &quot;binary_crossentropy&quot;,
-  metrics = c(&quot;accuracy&quot;)
+  metrics = &quot;accuracy&quot;
 )
 
 history1 &lt;- model %&gt;% fit(

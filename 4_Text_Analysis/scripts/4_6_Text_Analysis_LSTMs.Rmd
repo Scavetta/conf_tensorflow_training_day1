@@ -22,6 +22,18 @@ library(tidyverse)
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Implement an LSTM model for text (i.e. sequence) analysis.
+
+### Functions in this session:
+
+| Function       | Description                  |
+|:---------------|:-----------------------------|
+| `layer_lstm()` | Add an LSTM layer to a model. |
+
 ## Obtain data
 
 Let's take a look at an RNN on the Reuters dataset. First with only 20 words.

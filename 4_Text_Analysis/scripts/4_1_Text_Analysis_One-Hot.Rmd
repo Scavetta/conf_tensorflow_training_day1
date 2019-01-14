@@ -22,6 +22,22 @@ library(tidyverse)
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Text analysis using one-hot encoding
+
+### Functions in this session:
+
+Here we'll see some basic ways of working with text, using one-hot encoding.
+
+| Function              | Description                               |
+|:----------------------|:------------------------------------------|
+| `dataset_reuters()`    | Import the Reuters Newswire dataset. |
+| `dataset_reuters_word_index()`    | Reuters dataset word index. |
+| `to_categorical()` | Vectorize labels for use with softmax and `categorical_crossentropy` loss function. |
+
 ## Part 1: Data Preparation
 
 For multi-class classification, we previously use `sparse_cateogircal_crossentropy`, here we'll see  `categorical_crossentropy`.
@@ -66,7 +82,7 @@ train_data[[1]] %>%
 
 ### Prepare the data:
 
-We'll again use one-hot encoding:
+We'll use one-hot encoding:
 
 ```{r normImages}
 vectorize_sequences <- function(sequences, dimension = 10000) {
@@ -128,6 +144,7 @@ The distribution of the test and training set should be roughly equivalent, so l
 data.frame(x = train_labels) %>% 
   group_by(x) %>% 
   summarise(train_freq = 100 * n()/length(train_data)) -> train_labels_df
+
 data.frame(x  = test_labels) %>% 
   group_by(x) %>% 
   summarise(train_freq = 100 * n()/length(test_data)) %>% 
@@ -272,8 +289,6 @@ predictions <- network %>% predict_classes(test_data_vec)
 predictions[1:10]
 ```
 
-
-
 ```{r allPredictions}
 actual <- unlist(test_labels)
 totalmisses <- sum(predictions != actual)
@@ -284,8 +299,7 @@ This means we have a total of `r totalmisses` misses.
 ### Confusion Matrix
 
 ```{r confusion, echo = F}
-suppressPackageStartupMessages(library(tidyverse))
-# library(dplyr)
+
 data.frame(target = actual,
            prediction = predictions) %>% 
   filter(target != prediction) %>% 

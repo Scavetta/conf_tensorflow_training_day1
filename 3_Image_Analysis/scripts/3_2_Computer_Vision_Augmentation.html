@@ -378,6 +378,60 @@ $(document).ready(function () {
 
 <div id="section" class="section level1 tabset tabset-fade tabset-pills">
 <h1></h1>
+<div id="learning-goals-functions" class="section level2">
+<h2>Learning Goals &amp; Functions</h2>
+<div id="learning-goals" class="section level3">
+<h3>Learning Goals</h3>
+<p>Learn how to apply image augmentation to avoid overfitting.</p>
+</div>
+<div id="functions-in-this-session" class="section level3">
+<h3>Functions in this session:</h3>
+<p>Here, we’ll see arguments inside <code>image_data_generator()</code></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Argument</th>
+<th align="left">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>rescale</code></td>
+<td align="left"><code>1/255</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>rotation_range</code></td>
+<td align="left"><code>40</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>width_shift_range</code></td>
+<td align="left"><code>0.2</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>height_shift_range</code></td>
+<td align="left"><code>0.2</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>shear_range</code></td>
+<td align="left"><code>0.2</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>zoom_range</code></td>
+<td align="left"><code>0.2</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>horizontal_flip</code></td>
+<td align="left"><code>TRUE</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>fill_mode</code></td>
+<td align="left"><code>&quot;nearest&quot;</code></td>
+</tr>
+</tbody>
+</table>
+<p>Otherwise, the model and functions are as before.</p>
+</div>
+</div>
 <div id="data" class="section level2">
 <h2>Data</h2>
 <pre class="r"><code>data.frame(Cats = c(length(list.files(train_cats_dir)),
@@ -473,10 +527,7 @@ par(op)</code></pre>
   horizontal_flip = TRUE
 )</code></pre>
 <p>Note that the validation data shouldn’t be augmented!</p>
-<pre class="r"><code>test_datagen &lt;-
-  image_data_generator(rescale = 1/255)
-
-train_generator &lt;- flow_images_from_directory(
+<pre class="r"><code>train_generator &lt;- flow_images_from_directory(
   train_dir,
   datagen,
   target_size = c(150, 150),
@@ -513,6 +564,9 @@ plot(history)</code></pre>
 <div id="evaluation" class="section level2">
 <h2>Evaluation</h2>
 <pre class="r"><code>model_aug &lt;- load_model_hdf5(&quot;cats_and_dogs_augmentation.h5&quot;)
+
+# Test generator function:
+test_datagen &lt;- image_data_generator(rescale = 1/255)
 
 test_generator &lt;- flow_images_from_directory(
   test_dir,

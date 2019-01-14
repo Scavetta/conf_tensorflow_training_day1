@@ -1,6 +1,6 @@
 ---
-title: "Introduction to Deep Learning"
-subtitle: "Boston, regression, hold-out validation"
+title: "Evaluation and Optimization"
+subtitle: "Reducing Overfitting"
 author: "Rick Scavetta"
 output:
   html_document:
@@ -27,11 +27,11 @@ source("Boston_Z.R")
 
 # {.tabset .tabset-fade .tabset-pills}
 
-## Intro
+## Learning Goals & Functions
 
 ### Learning Goals
 
-Avoiding overfitting in your model.
+Avoiding overfitting in your model by adjusting hyperparameters, adding regularization and dropout.
 
 ### Functions in this session:
 
@@ -48,23 +48,23 @@ Use basic `keras` functions that we've seen already:
 
 Inside a `layer_dense()` function, use the regularization argument: 
 
-| Argument | Use |
-|:---------|:-----|
+| Argument             | Use                                                                                |
+|:---------------------|:-----------------------------------------------------------------------------------|
 | `kernel_regularizer` | Specify the regularization method as an argument inside `layer_dense()` functions. |
 
-| Function | Use |
-|:---------|:-----|
-| `regularizer_l1(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
-| `regularizer_l2(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
+| Function                | Use                                                                                 |
+|:------------------------|:------------------------------------------------------------------------------------|
+| `regularizer_l1(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization.           |
+| `regularizer_l2(0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization.           |
 | `regularizer_l1_l2(0.001, 0.001)` | Assign to the `kernel_regularizer` argument to specify L1 regularization. |
 
 #### Add Dropout
 
 Add an additional dropout layer using:
 
-| function | Use |
-|:---------|:-----|
-| `layer_dropout(0.5)` | Add an additional dropout layer, setting the dropout rate between [0,1] |
+| Function             | Use                                                                      |
+|:---------------------|:-------------------------------------------------------------------------|
+| `layer_dropout(0.5)` | Add an additional dropout layer, setting the dropout rate between [0,1]. |
 
 ## Part 1: Data Preparation & model
 

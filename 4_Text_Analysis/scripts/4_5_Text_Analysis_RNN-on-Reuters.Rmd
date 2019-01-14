@@ -22,7 +22,21 @@ library(tidyverse)
 
 # {.tabset .tabset-fade .tabset-pills}
 
-## reuters in an RNN
+## Learning Goals & Functions
+
+### Learning Goals
+
+Implement an RNNs with the Reuters data set.
+
+### Functions in this session:
+
+As previously seen:
+
+| Function             | Description                  |
+|:---------------------|:-----------------------------|
+| `layer_simple_rnn()` | Add an RNN layer to a model. |
+
+## Reuters in an RNN
 
 Let's take a look at an RNN on the Reuters dataset. First with only 20 words.
 

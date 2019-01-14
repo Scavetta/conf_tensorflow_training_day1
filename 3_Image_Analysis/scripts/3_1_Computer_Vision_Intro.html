@@ -378,6 +378,63 @@ $(document).ready(function () {
 
 <div id="section" class="section level1 tabset tabset-fade tabset-pills">
 <h1></h1>
+<div id="learning-goals-functions" class="section level2">
+<h2>Learning Goals &amp; Functions</h2>
+<div id="learning-goals" class="section level3">
+<h3>Learning Goals</h3>
+<p>Understand how to set up and train a convolutionan neural network (CNN) for computer vision.</p>
+</div>
+<div id="functions-in-this-session" class="section level3">
+<h3>Functions in this session:</h3>
+<p>Functions in the <code>tfruns</code> package:</p>
+<table>
+<colgroup>
+<col width="27%"></col>
+<col width="72%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Function</th>
+<th align="left">Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>layer_conv_2d()</code></td>
+<td align="left">Add a convolutional layer.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>layer_max_pooling_2d()</code></td>
+<td align="left">Add a 2d Max pooling layer.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>layer_flatten()</code></td>
+<td align="left">Add a flattening layer.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>optimizer_rmsprop()</code></td>
+<td align="left">Specify the optimizer function learning rate manually.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>image_data_generator()</code></td>
+<td align="left">Generator function for importing and scaling images.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>flow_images_from_directory()</code></td>
+<td align="left">Sequentially read in all images from a directory using a generator function.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>fit_generator()</code></td>
+<td align="left">Train a model using generator functions.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>evaluate_generator()</code></td>
+<td align="left">Evaluate a convnet model that uses generator functions with a test set generator.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="data" class="section level2">
 <h2>Data</h2>
 <div id="examine-data" class="section level3">
@@ -428,9 +485,7 @@ summary(model)</code></pre>
 <div id="read-images-from-directories" class="section level2">
 <h2>Read images from directories</h2>
 <p>Use <code>image_data_generator()</code></p>
-<pre class="r"><code>test_datagen &lt;- image_data_generator(rescale = 1/255)
-
-train_datagen &lt;- image_data_generator(rescale = 1/255)
+<pre class="r"><code>train_datagen &lt;- image_data_generator(rescale = 1/255)
 validation_datagen &lt;- image_data_generator(rescale = 1/255)
 
 train_generator &lt;- flow_images_from_directory(
@@ -471,6 +526,9 @@ str(batch)</code></pre>
 <div id="evaluation" class="section level2">
 <h2>Evaluation</h2>
 <pre class="r"><code>model_conv &lt;- load_model_hdf5(&quot;cats_and_dogs_small_convnet.h5&quot;)
+
+# Test generator function:
+test_datagen &lt;- image_data_generator(rescale = 1/255)
 
 test_generator &lt;- flow_images_from_directory(
   test_dir,

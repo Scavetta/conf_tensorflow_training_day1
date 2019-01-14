@@ -20,19 +20,23 @@ library(keras)
 library(tidyverse)
 ```
 
-# Session 1 {.tabset .tabset-fade .tabset-pills}
+# {.tabset .tabset-fade .tabset-pills}
 
 ## Functions & Take-home Message
 
-In this case study, we'll perform a single-label, multi-class classification to predict one of 4 possible outcomes from 13 predictor variables. 4 is an arbitrary value I've choosen for example purposes, of course in reality thre can be many more classes.
+For single-label multi-class classification, we try to predict one of many possible classes for the response variable.
 
-We'll use the following functions in our network:
+### Take-home Message
 
-| Name                           | Function              |
-|:-------------------------------|:----------------------|
-| Loss function                  | `binary_crossentropy` |
-| Metric                         | `accuracy`            |
-| last-layer activation function | `sigmoid`             |
+In this case study, we'll perform a single-label, multi-class classification to predict one of 4 possible outcomes from 13 predictor variables. 4 is an arbitrary value I've choosen for example purposes, of course in reality there can be many more classes.
+
+We'll use the following functions in our network arguments:
+
+| Name                           | Function                          |
+|:-------------------------------|:----------------------------------|
+| Loss function                  | `sparse_categorical_crossentropy` |
+| Metric                         | `accuracy`                        |
+| last-layer activation function | `softmax`                         |
 
 ## Part 1: Data Preparation
 
@@ -52,6 +56,7 @@ str(test_targets)
 ```
 
 ```{r}
+# I minus the integers by one so that we begin counting at 0.
 train_targets <- as.integer(cut(train_targets, seq(0,50,10))) - 1 
 test_targets <- as.integer(cut(test_targets, seq(0,50,10))) - 1
 
@@ -59,27 +64,15 @@ table(train_targets)
 table(test_targets)
 ```
 
+The classes are imbalanced.
 
 ```{r echo = FALSE, eval = FALSE}
-# train_targets %>% 
-#   data.frame(x = .) %>% 
-#   ggplot(aes(x)) +
-#   geom_histogram(binwidth = 1)
-# 
-# hist(train_targets, breaks =  50, xlim = c(0,50))
-
-# range(train_targets)
-# range(test_targets)
-# 
-# sum(is.na(train_targets))
-# sum(is.na(test_targets))
-
+train_targets %>%
+  data.frame(x = .) %>%
+  ggplot(aes(x)) +
+  geom_histogram(binwidth = 1)
 ```
 
-```{r}
-train_targets_vec <- to_categorical(train_targets)
-test_targets_vec <- to_categorical(test_targets)
-```
 
 
 ## Part 2: Define Network
@@ -90,7 +83,7 @@ Here we specify the final activation function. We're going to use the sigmoid ac
 
 ```{r architecture}
 network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = 13) %>% 
   layer_dense(units = 2^6, activation = "relu") %>% 
   layer_dense(units = 5, activation = "softmax")
 ```
@@ -106,7 +99,7 @@ summary(network)
 ```{r compile}
 network %>% compile(
   optimizer = "rmsprop",
-  loss = "categorical_crossentropy",
+  loss = "sparse_categorical_crossentropy",
   metrics = "accuracy"
 )
 ```
@@ -118,9 +111,9 @@ Now let's train our network for 100 epochs:
 ```{r echo=TRUE, results = "hide", warning = FALSE}
 history <- network %>% fit(
   train_data,
-  train_targets_vec,
+  train_targets,
   epochs = 100,
-  batch_size = 2^4
+  batch_size = 16
 )
 ```
 
@@ -134,21 +127,21 @@ The network begins to overfit after nine epochs. Let's train a new network from 
 
 ```{r, echo=TRUE, results='hide'}
 network <- keras_model_sequential() %>% 
-  layer_dense(units = 2^6, activation = "relu", input_shape = c(13)) %>% 
+  layer_dense(units = 2^6, activation = "relu", input_shape = 13) %>% 
   layer_dense(units = 2^6, activation = "relu") %>% 
   layer_dense(units = 5, activation = "softmax")
   
 network %>% compile(
   optimizer = "rmsprop",
-  loss = "categorical_crossentropy",
-  metrics = c("accuracy")
+  loss = "sparse_categorical_crossentropy",
+  metrics = "accuracy"
 )
 
 history <- network %>% fit(
   train_data,
-  train_targets_vec,
+  train_targets,
   epochs = 25,
-  batch_size = 2^4
+  batch_size = 16
 )
 ```
 
@@ -159,14 +152,14 @@ Let's return to our original model using the vectorized data:
 ### Metrics
 
 ```{r metrics}
-metrics <- network %>% evaluate(test_data, test_targets_vec)
+metrics <- network %>% evaluate(test_data, test_targets)
 ```
 
 ```{r}
 metrics
 ```
 
-error rate, incorrect calling, : `r 1 - metrics$acc`
+The accuracy is `r metrics$acc` and the error rate, i.e. incorrect calling, is `r 1 - metrics$acc`.
 
 ### Predictions
 
@@ -206,3 +199,20 @@ data.frame(target = actual,
         axis.text = element_text(colour = "black"))
 
 ```
+
+## Vectorization
+
+For softmax, we get the probabilities for each class. For this purpose you'll often see `categorical_crossentropy` as a loss function. To use this, the targets/labels need to be in the same format. We can achieve this using:
+
+```{r}
+head(train_targets)
+```
+
+
+```{r}
+train_targets_vec <- to_categorical(train_targets)
+test_targets_vec <- to_categorical(test_targets)
+
+head(train_targets_vec)
+```
+

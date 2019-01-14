@@ -14,6 +14,24 @@ output:
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Look at what actually happens to an image in a convnet and what filters are used in a trained model.
+
+### Functions in this session:
+
+After freezing large chunks of our convnet, we can choose to unfree specific components.
+
+| Function           | Description                                |
+|:-------------------|:-------------------------------------------|
+| `image_load()`     | Import and resize an image.                |
+| `image_to_array()` | Import and resize an image.                |
+| `array_reshape()`  | Reshape an arry for use with tensorflow.   |
+| `as.raster()`      | Convert a matrix to a raster for plotting. |
+| `x$output`         | The output layer of a model `x`.           |
+
 ## Data sources
 
 ```{r setup, include=FALSE}
@@ -116,9 +134,9 @@ plot_channel(first_layer_activation[1,,,7])
 
 ```
 
-Visualizing every channel in every intermediate activation
+## Visualizing Covnnet Filters
 
-These have been saved to the working directory.
+We can visualize every channel in every intermediate activation. All the following images have been saved to the working directory.
 
 ```{r vizAll, eval = FALSE}
 
@@ -145,9 +163,7 @@ for (i in 1:8) {
 
 ```
 
-## Covnnet Filters
-
-Some additional visualization funciton from the Deep Lerning with R book
+Here are some additional visualization functions from the _Deep Lerning with R_ book that you can execute to visualize you filters. We won't go into detail in the workshop. All outputs are save in the working directory.
 
 Defining the loss tensor for filter visualization (Listing 5.32)
 

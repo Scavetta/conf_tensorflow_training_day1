@@ -23,6 +23,21 @@ library(tidyverse)
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Text analysis using our own word embeddings.
+
+### Functions in this session:
+
+Here we'll see some basic ways of working with text, using one-hot encoding.
+
+| Function              | Description                               |
+|:----------------------|:------------------------------------------|
+| `pad_sequences()`    | Make all instances the same length by padding them. |
+| `layer_embedding()`    | Add an embedding layer to a model. |
+
 ## Obtain data
 
 ### Loading the Reuters data set for use with an embedding layer

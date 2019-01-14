@@ -25,6 +25,27 @@ source("dir_cat_dog.R")
 
 # {.tabset .tabset-fade .tabset-pills}
 
+## Learning Goals & Functions
+
+### Learning Goals
+
+Understand how to set up and train a convolutionan neural network (CNN) for computer vision.
+
+### Functions in this session:
+
+Functions in the `tfruns` package:
+
+| Function                       | Use                                                                               |
+|:-------------------------------|:----------------------------------------------------------------------------------|
+| `layer_conv_2d()`              | Add a convolutional layer.                                                        |
+| `layer_max_pooling_2d()`       | Add a 2d Max pooling layer.                                                       |
+| `layer_flatten()`              | Add a flattening layer.                                                           |
+| `optimizer_rmsprop()`          | Specify the optimizer function learning rate manually.                            |
+| `image_data_generator()`       | Generator function for importing and scaling images.                              |
+| `flow_images_from_directory()` | Sequentially read in all images from a directory using a generator function.      |
+| `fit_generator()`              | Train a model using generator functions.                                          |
+| `evaluate_generator()`         | Evaluate a convnet model that uses generator functions with a test set generator. |
+ 
 ## Data
 
 ### Examine data:
@@ -90,8 +111,6 @@ Use `image_data_generator()`
 
 ```{r}
 
-test_datagen <- image_data_generator(rescale = 1/255)
-
 train_datagen <- image_data_generator(rescale = 1/255)
 validation_datagen <- image_data_generator(rescale = 1/255)
 
@@ -123,7 +142,6 @@ str(batch)
 
 ## Train
 
-
 ```{r}
 
 history <- model %>% fit_generator(
@@ -135,8 +153,6 @@ history <- model %>% fit_generator(
 )
 
 ```
-
-
 
 View history
 
@@ -155,6 +171,9 @@ plot(history)
 ```{r}
 
 model_conv <- load_model_hdf5("cats_and_dogs_small_convnet.h5")
+
+# Test generator function:
+test_datagen <- image_data_generator(rescale = 1/255)
 
 test_generator <- flow_images_from_directory(
   test_dir,

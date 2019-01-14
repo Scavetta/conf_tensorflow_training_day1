@@ -23,7 +23,24 @@ library(keras)
 library(tidyverse)
 ```
 
-## Data sources
+## Learning Goals & Functions
+
+### Learning Goals
+
+Access and use pre-trained convnets
+
+### Functions in this session:
+
+Here, we'll use functions specific to obtaining and using pre-trained convnets.
+
+| Function              | Description       |
+|:----------------------|:---------------------------------------------------------------------------------------------|
+| `application_vgg16()` | Add a pre-trained `vgg16` convnet using weights from imagenet.                               |
+| `extract_features()`  | Custom function to extract features using the `vgg16` network form images.                   |
+| `array_reshape()`     |  Reshape feature to conform to our network tensor input shape.                               |
+| `freeze_weights()`    | Freeze specific weights in a pre-trained model so that they are not updated during training. |
+
+## Data
 
 ```{r}
 # define the directories:
@@ -54,6 +71,7 @@ batch_size <- 20
 extract_features <- function(directory, sample_count) {
   features <- array(0, dim = c(sample_count, 4, 4, 512))
   labels <- array(0, dim = c(sample_count))
+  
   generator <- flow_images_from_directory(
     directory = directory,
     generator = datagen,
@@ -61,7 +79,9 @@ extract_features <- function(directory, sample_count) {
     batch_size = batch_size,
     class_mode = "binary"
   )
+  
   i <- 0
+  
   while(TRUE) {
     batch <- generator_next(generator)
     inputs_batch <- batch[[1]]
@@ -118,7 +138,7 @@ Compile and train. This will be relatively quick.
 model %>% compile(
   optimizer = optimizer_rmsprop(lr = 2e-5),
   loss = "binary_crossentropy",
-  metrics = c("accuracy")
+  metrics = "accuracy"
 )
 
 history1 <- model %>% fit(
