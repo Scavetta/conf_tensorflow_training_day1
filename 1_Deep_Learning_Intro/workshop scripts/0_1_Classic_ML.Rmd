@@ -21,6 +21,8 @@ library(tidyverse)
 library(caret)
 library(randomForest)
 library(kableExtra)
+library(tibble)
+library(forcats)
 ```
 
 # {.tabset .tabset-fade .tabset-pills}
