@@ -13,7 +13,7 @@ library(cowplot)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Terminology I - Machine Learning
+## Pre-workshop ML Terminology
 
 There are terms which are common among the many methods in machine learning. Let's make sure we're all on the same page.
 
@@ -37,7 +37,7 @@ quiz(caption = "What do these terms refer to?",
            correct = "Great!"
   ),
   question("Supervised Learning",
-           answer("A training and test set"),
+           answer("A training and test set", correct = TRUE),
            answer("Small, manually-collected data set"),
            answer("Labeled instances", correct = TRUE),
            answer("Various flavors of classification and regression", correct = TRUE),
@@ -55,7 +55,7 @@ quiz(caption = "What do these terms refer to?",
   question("The Curse of Dimensionality",
            answer("Many variables", correct = TRUE),
            answer("A plot with too many endoding aesthetics"),
-           answer("Something to do with Captain Picard"),
+           answer("Something to do with Captain Picard's new series!"),
            answer("A high-dimensional feature space", correct = TRUE),
            allow_retry = T,
            correct = "Great!"
@@ -81,7 +81,7 @@ quiz(caption = "What do these terms refer to?",
 
 ```
 
-## Terminology II - Deep Learning
+## Deep Learning Terminology
 
 ```{r MC_terma_DL}
 
@@ -98,12 +98,6 @@ quiz(caption = "Terms in Deep Learning",
            answer("Microsoft Cognitive Toolkit", correct = TRUE),
            answer("Microsoft Excel"),
            answer("Theano", correct = TRUE),
-           allow_retry = T,
-           correct = "Great!"
-  ),
-  question("If many of the questions we",
-           answer("XXX"),
-           answer("YYY", correct = TRUE),
            allow_retry = T,
            correct = "Great!"
   ),
@@ -160,7 +154,7 @@ quiz(caption = "What do the following functions do?",
            answer("Add a densly connected layer default values of 2^6 nodes, taking input from 2^4 nodes."),
            answer("Initialize a neural network structure"),
            answer("To be used as the final layer in a regression problem.", correct = TRUE),
-           answer("To be used as the final layer in a classification problem."),
+           answer("To be used as the final layer in a classification problem.", message = "It could, but then we'd need to specify an activation function."),
            allow_retry = T,
            correct = "Great!"
   ),
@@ -320,7 +314,7 @@ quiz(caption = "What is the purpose of a loss function?",
            answer("sparse_categorical_crossentropy", correct = TRUE),
            answer("binary_crossentropy", correct = TRUE),
            answer("mean_squared_error", correct = TRUE),
-           answer("mean_absolute_error", correct = TRUE),
+           answer("mean_absolute_error"),
            allow_retry = T,
            correct = "Great!"
   )
@@ -334,18 +328,19 @@ quiz(caption = "Metrics",
   question("What is the purpose of the metrics?",
            answer("It tells us how well our model performs", correct = TRUE),
            answer("We adjust our parameters to maximize this value"),
-           answer("We adjust our parameters to maximize this value"),
+           answer("We adjust our parameters to minimize this value", message = "Not really, we adjust our parameter according to the result of the loss funciton to reduce its value"),
            answer("It tells us about the number of features we have"),
            allow_retry = T,
-           correct = "Great! Although we want this value to be high, we're not actually controlling it directly. It's a result of adjusting the parameter given the output from our loss function and tells us how well our model performs."
+           correct = "Great! A good value depends on the metric. e.g. High accuracy, low MAE. We're not actually controlling it directly. It's a result of adjusting the parameters given the output from our loss function and tells us how well our model performs."
   ),
   question("Which are examples of metrics we may choose to calculate?",
            answer("mae", correct = TRUE),
-           answer("acc", correct = TRUE),
-           answer("cov"),
+           answer("Sum of the Squared Residuals"),
+           answer("accuracy", correct = TRUE),
+           answer("covarience"),
            answer("crossentropy"),
            allow_retry = T,
-           correct = "Great! There are a few different optimizer functions to choose from."
+           correct = "Great! There are a few different metrics to choose from."
   )
 )
 
@@ -359,6 +354,7 @@ quiz(caption = "Optimizer Functions",
   question("What is the purpose of an optimizer function?",
            answer("Informs us how to to update our parameters given the result of the loss function", correct = TRUE),
            answer("It's a measure of accuracy"),
+           answer("It's the value we are trying to minimize in deep learning"),
            answer("It's the value we are trying to maximize in deep learning"),
            allow_retry = T,
            correct = "Great! There are a few different optimizer functions to choose from."
@@ -377,34 +373,6 @@ quiz(caption = "Optimizer Functions",
 
 ```
 
-
-```{r MC_loss}
-
-quiz(caption = "Loss Functions",
-  question("What is the purpose of a loss function?",
-           answer("Informs us how to to update our parameters given the result of the loss function", correct = TRUE),
-           answer("It's the function whose result we are trying to minimize"),
-           answer("Informs us how to to update our parameters after each pass-through."),
-           allow_retry = T,
-           correct = "Great! There are a few different optimizer functions to choose from."
-  ),
-  question("Which are examples of loss functions that we saw in the workshop?",
-           answer("Sigmoid"),
-           answer("None (i.e. scalar)", correct = TRUE),
-           answer("Categorical Crossentropy", correct = TRUE),
-           answer("Binary Crossentropy", correct = TRUE),
-           answer("Sparse Categorical Crossentropy"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
-           answer("MSE (Mean Squared Error)"),
-           answer("Softmax"),
-           allow_retry = T,
-           correct = "Great! There."
-  )
-)
-
-
-```
-
 ## Use cases
 
 In sesison 1 we saw that we use the `ReLU` activation function for the hidden layers and `RMSprop` as the model's optimizer function. But there are many other funcitons we need to keep track of, like the loss, the evaluation metric, the final layer activation funciton.
@@ -418,25 +386,34 @@ Consider the three scenarios we saw in session 1. Which functions would you use 
 
 quiz(caption = "Regression",
   question("Loss function:",
-           answer("some fun", correct = TRUE),
-           answer("It's the function whose result we are trying to minimize"),
+           answer("binary_crossentropy"),
+           answer("sparse_categorical_crossentropy"),
+           answer("mse", correct = TRUE),
+           answer("categorical_crossentropy"),
            allow_retry = T,
-           correct = "Great! There are a few different optimizer functions to choose from."
+           correct = "Exactly!"
   ),
   question("Final layer activation function:",
            answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("ReLU"),
+           answer("MAE (Mean Absolute Error)"),
+           answer("softmax"),
+           answer("none", correct = TRUE),
            allow_retry = T,
-           correct = "Great! There."
+           correct = "Great!"
   ),
   question("Neurons in last layer:",
-           answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("1", correct = TRUE),
+           answer("16"),
+           answer("64"),
+           answer("128"),
            allow_retry = T,
            correct = "Great! There."
   ),
   question("Evaluation metric function",
+           answer("Z-scores"),
            answer("Sigmoid"),
+           answer("Accuracy"),
            answer("MAE (Mean Absolute Error)", correct = TRUE),
            allow_retry = T,
            correct = "Great! There."
@@ -449,33 +426,41 @@ quiz(caption = "Regression",
 
 ```{r MC_chooseBinClass}
 
-quiz(caption = "Regression",
+quiz(caption = "Binary Classification",
   question("Loss function:",
-           answer("some fun", correct = TRUE),
-           answer("It's the function whose result we are trying to minimize"),
+           answer("binary_crossentropy", correct = TRUE),
+           answer("sparse_categorical_crossentropy"),
+           answer("mse"),
+           answer("categorical_crossentropy"),
            allow_retry = T,
-           correct = "Great! There are a few different optimizer functions to choose from."
+           correct = "Exactly!"
   ),
   question("Final layer activation function:",
-           answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("Sigmoid", correct = TRUE),
+           answer("ReLU"),
+           answer("MAE (Mean Absolute Error)"),
+           answer("softmax"),
+           answer("none"),
            allow_retry = T,
-           correct = "Great! There."
+           correct = "Great!"
   ),
   question("Neurons in last layer:",
-           answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("1", correct = TRUE),
+           answer("16"),
+           answer("64"),
+           answer("128"),
            allow_retry = T,
            correct = "Great! There."
   ),
   question("Evaluation metric function",
+           answer("Z-scores"),
            answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("Accuracy", correct = TRUE),
+           answer("MAE (Mean Absolute Error)"),
            allow_retry = T,
            correct = "Great! There."
   )
 )
-
 
 ```
 
@@ -484,26 +469,35 @@ quiz(caption = "Regression",
 
 quiz(caption = "Regression",
   question("Loss function:",
-           answer("some fun", correct = TRUE),
-           answer("It's the function whose result we are trying to minimize"),
+           answer("binary_crossentropy"),
+           answer("sparse_categorical_crossentropy", correct = TRUE),
+           answer("mse"),
+           answer("categorical_crossentropy", correct = TRUE),
            allow_retry = T,
-           correct = "Great! There are a few different optimizer functions to choose from."
+           correct = "Exactly! We could have used either one depending on the form of out labels."
   ),
   question("Final layer activation function:",
            answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("ReLU"),
+           answer("MAE (Mean Absolute Error)"),
+           answer("softmax", correct = TRUE),
+           answer("none"),
            allow_retry = T,
-           correct = "Great! There."
+           correct = "Great!"
   ),
   question("Neurons in last layer:",
-           answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("1"),
+           answer("4", correct = TRUE),
+           answer("16"),
+           answer("128"),
            allow_retry = T,
            correct = "Great! There."
   ),
   question("Evaluation metric function",
+           answer("Z-scores"),
            answer("Sigmoid"),
-           answer("MAE (Mean Absolute Error)", correct = TRUE),
+           answer("Accuracy", correct = TRUE),
+           answer("MAE (Mean Absolute Error)"),
            allow_retry = T,
            correct = "Great! There."
   )
@@ -674,14 +668,88 @@ quiz(
 )
 ```
 
-## Your Turn
+## Overfitting
 
-In Sesison 1 We introduced the following functions:
+```{r MC_Overfitting}
 
-
-
-```{r S1_YT}
-
+quiz(caption = "Overfitting",
+  question("Which methods to alleviate overfitting did we discuss?",
+           answer("Increase sample size"),
+           answer("Decrease Capacity"),
+           answer("Add weight regularization"),
+           answer("Add dropout"),
+           answer("All of the above", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! Most are algorithim-based"
+  ),
+  question("We can observe overfitting in our history as:",
+           answer("The validation loss does not increase"),
+           answer("The training loss decreases, while the validation loss increases", correct = TRUE),
+           answer("The validation loss is lower than the test loss"),
+           answer("It's not possible to see this"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("I made the distinction between data and algorithim-based methods for dealing with overfitting. What did I mean by data-based?",
+           answer("We should standardize our values so that they are not in wildly different ranges", message = "This is correct, and will help when training your model, but it's not quite what I meant"),
+           answer("That we should have lots of instances.", correct = TRUE),
+           answer("That we should have lots of features."),
+           answer("That we should pay close attention to feature engineering", message = "While you should certainly pay attention to the features you're using, deep learning can relieve the need to extensive feature engineering"),
+           allow_retry = T,
+           correct = "Great! More instances means we have a better representation of what we want to observe."
+  ),
+  question("A model's capacity refers to:",
+           answer("The hyperparameters, i.e. the number of hidden layers and the number of nodes in each hidden layer", correct = TRUE),
+           answer("The parameters, i.e. the weights and bias matrices."),
+           answer("The validation accuracy of the model."),
+           answer("The ability for the model to accurately classify an instance of the test set."),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("At the start of training, will the validation loss be smaller or greater than the training loss?",
+           answer("Smaller"),
+           answer("Larger", correct = TRUE),
+           allow_retry = T,
+           correct = "Great! Can you explain why?"
+  ),
+  question("True or False: Larger models are always prefered since we can account for more subtilities in the training data",
+           answer("TRUE"),
+           answer("FALSE", correct = TRUE),
+           allow_retry = T,
+           correct = "Exactly. Actually very large models will just allows us to overfit since we memorize a path between our our instance and its label."
+  ),
+  question("The more features we have in our test set:",
+           answer("The more hidden layers we should include"),
+           answer("Each hidden layer needs to be larger", correct = TRUE),
+           answer("We have a better chance at uncovering the true population values"),
+           answer("Thw worse off we are"),
+           allow_retry = T,
+           correct = "Exactly, because we need to account for the extra information, but they don't need to be massively large."
+  ),
+  question("Large, complex models lead to overfitting because:",
+           answer("This statement is false, actually, they perform better than smaller models"),
+           answer("They begin to 'memorize' paths unique to the test set", message = "Exactly, they begin to specialize on the training set.", correct = TRUE),
+           answer("They generalize well to many difference instances",  message = "This is not really the case, they are not generalizing, they are actually getting more specialized -- to the training set."),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("L1 weight regularization refers to:",
+           answer("Absolute values", correct = TRUE),
+           answer("Squared values"),
+           answer("Square-root values"),
+           answer("log values"),
+           allow_retry = T,
+           correct = "Great!"
+  ),
+  question("L2 weight regularization refers to:",
+           answer("Absolute values"),
+           answer("Squared values", correct = TRUE),
+           answer("Square-root values"),
+           answer("log values"),
+           allow_retry = T,
+           correct = "Great!"
+  )
+  
+)
 
 ```
-

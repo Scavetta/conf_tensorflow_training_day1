@@ -1,4 +1,4 @@
----
+  ---
 title: "Binary Classification with Text: The IMDB Dataset"
 subtitle: "Scenarion 4: Long short-term memory (LSTM)"
 author: "Rick Scavetta"
@@ -13,3 +13,5 @@ knitr::opts_chunk$set(echo = TRUE)
 library(keras)
 library(tidyverse)
 ```
+
+See the exercise cocument for instructions.

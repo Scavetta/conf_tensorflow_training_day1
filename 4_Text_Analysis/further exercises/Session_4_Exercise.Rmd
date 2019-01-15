@@ -14,4 +14,11 @@ In this session we saw how to develop RNNs (and specifically LSTMs) for text cla
 
 ## Identify scientfic discipline
 
-Your challenge in this exercise is to identify the scientific discipline from a collection of abstracts.
+Your challenge in this exercise is to identify the sentiment of a movie review using the IMDB moview revies corpus. The data set can be found in keras using `dataset_imdb(num_words = 10000)` but I've saved a version in the data folder also.
+
+You are tasked with building four different models:
+
+1. A densely-connected model using one-hot encoding.
+2. One that uses word embeddings.
+3. One that uses an RNN.
+4. One that uses an LSTM.

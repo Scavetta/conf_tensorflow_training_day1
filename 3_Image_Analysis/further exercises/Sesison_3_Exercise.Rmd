@@ -10,16 +10,22 @@ library(tidyverse)
 library(keras)
 ```
 
-In this session we build and used a CNN for computer vision and used it on a binary classification problem using a classic dataset for image analysis.
+In this session we built and used a CNN for computer vision and used it on a binary classification problem using a classic dataset for image analysis.
 
 Let's see if we can put what we learned to good use.
 
 In the data folder you'll find two additional directories containing two computer vision challenges.
 
+Your challenge is to develop a deep learning classifier similar to what we've done in class on these data sets: 
+
 ## Labradoodle va Fried Chicken
 
-The first one, `labradoodle_friedchicken` is a fun exercise that tries to distinguish between friend chicken and the surpirisngly similar looking brown labradoodle. The data was taken from this github repository. There is a machine learning solution there, but you can take a look at that later. Try to apply what we have learned in class on this data set.
+The first one, `labradoodle_friedchicken` is a fun exercise that tries to distinguish between friend chicken and the surpirisngly similar looking brown labradoodle. The data was taken from this github repository. There is a machine learning solution there, but you can take a look at that later.
 
 ## Uninfected vs Infected
 
-Simple histoloy staining of cell samples is a cheap, quick and easy method for visual analysis of cells. In this exercise you are tasked with building 
+Simple histoloy staining of cell samples is a cheap, quick and easy method for visual analysis of cells.
+
+***
+
+The paths to all the files are stored in the associated R scripts.

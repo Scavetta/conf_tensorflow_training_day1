@@ -13,3 +13,5 @@ knitr::opts_chunk$set(echo = TRUE)
 library(keras)
 library(tidyverse)
 ```
+
+See the exercise cocument for instructions.
