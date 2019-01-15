@@ -1,0 +1,310 @@
+---
+title: "Abalone data set, Basic DL"
+subtitle: "Regression, full description"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Part 1: Abalone Dataset
+
+The UCI Abalone data-set is a small and easy starting point since it can be used for predicting age as either a categorical or continuous variable.
+
+In the data files you'll find the following variables:
+
+| Variable       | Type       | Unit  | Description                 |
+|----------------|------------|-------|-----------------------------|
+| sex            | nominal    | --    | M, F, and I (infant)        |
+| length         | continuous | mm    | Longest shell measurement   |
+| diameter       | continuous | mm    | perpendicular to length     | 
+| height         | continuous | mm    | with meat in shell          |
+| whole_weight   | continuous | grams | whole abalone               |
+| shucked_weight | continuous | grams | weight of meat              |
+| viscera_weight | continuous | grams | gut weight (after bleeding) | 
+| shell_weight   | continuous | grams | after being dried           | 
+
+In the labels file you'll find the following variable:
+
+| Variable       | Type       | Unit  | Description                 |
+|----------------|------------|-------|-----------------------------|
+| rings          | integer    | --    | +1.5 gives the age in years |
+
+The number of rings, variable `rings`, is the value to predict as either a continuous value or as a classification problem. 
+
+### Obtain data &  Prepare data:
+
+This data set is also available in the `AppliedPredictiveModeling` package.
+
+```{r}
+
+abalone_data <- read.csv("data/Complete/abalone_data.csv")
+abalone_labels <- read.csv("data/Complete/abalone_labels_cont.csv")
+
+glimpse(abalone_data)
+
+```
+
+
+### Examine data:
+
+```{r}
+tabplot::tableplot(abalone_data)
+```
+
+### plot the data anew:
+
+```{r}
+abalone_data %>% 
+  gather() %>%
+  ggplot(aes(key, value)) +
+  geom_jitter(shape = 1, alpha = 0.2)
+```
+
+Transformation, Z-score
+
+```{r}
+abalone_data %>% 
+  mutate_all(scale) -> abalone_data
+
+```
+
+```{r}
+abalone_data %>% 
+  gather() %>%
+  ggplot(aes(key, value)) +
+  geom_jitter(shape = 1, alpha = 0.2)
+```
+
+
+
+```{r}
+
+# there are two extreme values, that may cause a problem
+rem_index <- which(abalone_data$Height > 5)
+
+abalone_data %>% 
+  slice(-rem_index) -> abalone_data
+
+abalone_labels %>% 
+  slice(-rem_index) -> abalone_labels
+
+
+```
+
+```{r}
+ggplot(abalone_labels, aes(Rings)) +
+  geom_bar() +
+  scale_x_continuous("Number of Rings", breaks = 1:29) +
+  coord_cartesian(expand = 0) +
+  theme_minimal()
+
+```
+
+All values from 1-27 & 29 are present. The training and test set should contain at least one representative of each group.
+
+## Part 2: Training and Test sets
+
+```{r}
+train_n <- round(0.8*nrow(abalone_data))
+test_n <- round(0.2*nrow(abalone_data))
+```
+
+number of training instances n = `r train_n`.
+
+number of test instances n = `r test_n`.
+
+### Split up training and test
+
+```{r}
+
+# Convert to a matrix:
+abalone_data <- as.matrix(abalone_data)
+
+set.seed(136)
+train_index <- sample(seq_len(nrow(abalone_data)), train_n)
+
+train_data <- unname(abalone_data[train_index,])
+train_labels <- abalone_labels[train_index,]
+
+test_data <- unname(abalone_data[-train_index,])
+test_labels <- abalone_labels[-train_index,]
+
+
+```
+
+```{r}
+str(train_data)
+str(test_data)
+
+```
+
+## Labels
+
+The `_labels` objects contain the news wire labels. Each newswire can only have one *label* (i.e. "sigle-label"), from a total of 46 possible *classes* (i.e. "multi-class"). The classes are just given numerical values (0 - 45), it doesn't matter what they are actually called, although that information would be helpful in understanding mis-labeling.
+
+```{r}
+table(train_labels)
+```
+
+```{r}
+table(test_labels)
+```
+
+Some classes are very common, which we'll see play out in our confusion matrix below 
+
+```{r plotLabelsPre}
+# Note plyr not dplyr here. I'm just using a shortcut
+
+train_labels %>% 
+  plyr::count() %>%
+  ggplot(aes(x, freq)) +
+  geom_col()
+```
+
+The distribution of the test and training set should be roughly equivalent, so let's have a look. 
+
+```{r}
+data.frame(x = train_labels) %>% 
+  group_by(x) %>% 
+  summarise(train_freq = 100*n()/length(train_labels)) -> train_labels_df
+
+data.frame(x  = test_labels) %>% 
+  group_by(x) %>% 
+  summarise(test_freq = 100 * n()/length(test_labels)) %>% 
+  inner_join(train_labels_df, by="x") %>% 
+  gather(key, value, -x) %>% 
+  ggplot(aes(x, value, fill = key)) +
+  geom_col(position = "dodge") +
+  # scale_y_continuous("Percentage", limits = c(0,20), expand = c(0,0)) +
+  # scale_x_continuous("Label", breaks = 0:45, expand = c(0,0)) +
+  scale_fill_manual("", labels = c("test","train"), values = c("#AEA5D0", "#54C8B7")) +
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8),
+        axis.line.x = element_blank(),
+        axis.text = element_text(colour = "black"))
+```
+
+Make the format match the output we expect to get from softmax so that we can make a direct comparison.
+
+```{r prepLabels}
+train_labels_vec <- to_categorical(train_labels)
+test_labels_vec <- to_categorical(test_labels)
+```
+
+```{r}
+colSums(test_labels_vec)
+colSums(train_labels_vec)
+```
+
+```{r strLabelsPost}
+str(train_labels_vec)
+str(test_labels_vec)
+```
+
+## Part 3: Regression
+
+### Define a network
+
+```{r}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 32, activation = "relu", input_shape = 8) %>% 
+  layer_dense(units = 32, activation = "relu") %>% 
+  layer_dense(units = 1) 
+
+```
+
+
+### Compile a network:
+
+Here, the only thing we need to chance is the loss function. `categorical_crossentropy`, expects the labels to follow a categorical encoding, but `sparse_categorical_crossentropy` expects integer labels. 
+
+```{r}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "mse",
+  metrics = "mae"
+)
+```
+
+### Train a network
+
+Now let's train our model `network_int` using the integer data, instead of the vectorized data:
+
+```{r}
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 50,
+  batch_size = 64
+  )
+```
+
+Let's display its loss and accuracy curves:
+
+```{r}
+plot(history)
+```
+
+## Model Evaluation:
+
+```{r runZ_2}
+result <- network %>% 
+  evaluate(test_data, test_labels)
+```
+
+### Results:
+
+```{r runZ_3}
+MAE <- result$mean_absolute_error
+```
+
+
+```{r resultsZ}
+result
+```
+
+The MAE is `r MAE`.
+
+## Predictions
+
+To get the actual predictions we can use the `predict()` function:
+
+```{r}
+network %>%
+  predict(test_data) %>% 
+  head()
+```
+
+```{r echo = FALSE}
+
+data.frame(Prediction = predict(network, test_data),
+           Actual = test_labels) -> allResults
+
+cor(allResults$Prediction, allResults$Actual)
+
+allResults %>% 
+  ggplot(aes(Actual, Prediction)) +
+  geom_point(shape = 16, alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, col = "dark red") +
+  coord_fixed(xlim = c(0,30), ylim = c(0,30), expand = 0, clip = "off") +
+  theme_classic() +
+  theme(axis.text = element_text(colour = "black"),
+        strip.background = element_rect(colour = NA, fill = "gray92"))
+
+```

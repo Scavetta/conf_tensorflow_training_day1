@@ -1,0 +1,123 @@
+---
+title: "Session 1 Exercise: Abaolone as Regression"
+subtitle: "Regression, compact"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+
+# Initialize package
+library(keras)
+library(tidyverse)
+```
+
+# {.tabset .tabset-fade .tabset-pills}
+
+This is a compact version of the full regression document.
+
+## Part 1: Abalone Dataset
+
+### Obtain data &  Prepare data:
+
+```{r}
+abalone_data <- read.csv("data/Complete/abalone_data.csv")
+abalone_labels <- read.csv("data/Complete/abalone_labels_cont.csv")
+
+abalone_data %>% 
+  mutate_all(scale) -> abalone_data
+
+# there are two extreme values, that may cause a problem
+rem_index <- which(abalone_data$Height > 5)
+
+abalone_data %>% 
+  slice(-rem_index) -> abalone_data
+
+abalone_labels %>% 
+  slice(-rem_index) -> abalone_labels
+
+```
+
+## Part 2: Training and Test sets
+
+### Split up training and test
+
+```{r}
+train_n <- round(0.8*nrow(abalone_data))
+test_n <- round(0.2*nrow(abalone_data))
+
+# Convert to a matrix:
+abalone_data <- as.matrix(abalone_data)
+
+set.seed(136)
+train_index <- sample(seq_len(nrow(abalone_data)), train_n)
+
+train_data <- unname(abalone_data[train_index,])
+train_labels <- abalone_labels[train_index,]
+
+test_data <- unname(abalone_data[-train_index,])
+test_labels <- abalone_labels[-train_index,]
+
+```
+
+## Part 3: Regression
+
+### Define a network
+
+```{r}
+network <- keras_model_sequential() %>% 
+  layer_dense(units = 32, activation = "relu", input_shape = 8) %>% 
+  layer_dense(units = 32, activation = "relu") %>% 
+  layer_dense(units = 1) 
+
+```
+
+### Compile a network:
+
+```{r}
+network %>% compile(
+  optimizer = "rmsprop",
+  loss = "mse",
+  metrics = "mae"
+)
+```
+
+### Train a network
+
+```{r}
+history <- network %>% fit(
+  train_data,
+  train_labels,
+  epochs = 50,
+  batch_size = 64
+  )
+```
+
+```{r}
+plot(history)
+```
+
+## Model Evaluation:
+
+```{r runZ_2}
+result <- network %>% 
+  evaluate(test_data, test_labels)
+
+result
+```
+
+## Predictions
+
+```{r}
+network %>%
+  predict(test_data) %>% 
+  head()
+```

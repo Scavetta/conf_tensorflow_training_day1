@@ -1,0 +1,210 @@
+---
+title: "Abalone Dataset"
+subtitle: "Classic Machine Learning Approaches"
+author: "Rick Scavetta"
+output:
+  html_document:
+  fig_caption: true
+  toc: true
+  toc_float:
+    collapsed: false
+    smooth_scroll: false
+  toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, eval = TRUE)
+
+# Initialize packages
+library(keras)
+library(tidyverse)
+library(caret)
+library(randomForest)
+library(kableExtra)
+```
+
+# Boston Dataset {.tabset .tabset-fade .tabset-pills}
+
+## Functions & Take-home Message
+
+We're going to focus on deep learning, but I want to put it in context with these methods that you should already be familiar with. You should be familiar with the concepts presented in this section.
+
+## Load data
+
+For this example, I'm going to use the exact same data that we'll see later in deep learning so we can directly compare the results.
+
+```{r}
+# Read the dataset
+abalone <- read.csv("../further exercises/data/abalone_complete.data")
+
+names(abalone) <- c("Sex", "Length", "Diameter", "Height", "Whole_weight", "Shucked_weight", "Viscera_weight", "Shell_weight", "Rings")  
+
+abalone %>% 
+  mutate(Sex = as.integer(Sex)) -> abalone
+
+```
+
+
+```{r}
+summary(abalone)
+```
+
+## ML preparation
+
+### Check Correlation
+
+Each predictor variable against the response variable:
+
+```{r echo = FALSE}
+
+data.frame(r = cor(abalone[,-8],abalone[,8])) %>% 
+  rownames_to_column() %>% 
+  rename(variable = rowname) %>% 
+  arrange(r) %>% 
+  mutate(variable = as_factor(variable)) %>% 
+  ggplot(aes(r, variable)) +
+  geom_vline(xintercept = 0, col = "dark red", linetype = 2) +
+  geom_point() +
+  scale_x_continuous("r", limits = c(-1,1), expand = c(0,0))
+  
+```
+
+In practice we may decide, using criteria such as r, that some variables are more invormative. In this case we'll just take all the variables.
+
+### Check Variance
+
+Assess presence of zero of near-zero variance variables:
+
+```{r}
+nzv <- nearZeroVar(abalone, saveMetrics = TRUE)
+```
+
+There are `r sum(nzv$nzv)` zero variance of near-zero variance variables.
+
+### Create test set
+
+This split reflects what we'll see in `keras`.
+
+```{r}
+
+index_n <- round(0.8*nrow(abalone))
+
+set.seed(136)
+index <- sample(seq_len(nrow(abalone)), index_n)
+
+# Training set
+training <- abalone[index,]
+testing <- abalone[-index,]
+
+
+# train_labels <- abalone_labels[train_index]
+# 
+# # Test Set
+# test_labels <- abalone_labels[-train_index]
+# 
+# # Validation Set
+# set.seed(136)
+# index <- 1:(0.2*nrow(train_data))
+# 
+# val_data <- train_data[index,]
+# train_data <- train_data[-index,]
+# 
+# val_labels <- train_labels[index]
+# train_labels <- train_labels[-index]
+
+
+```
+
+### Z-score Scaling
+
+We'll perform a Z-score transformation on each predictor variable, after splitting, as we will do later in deep learning. All variables will have a mean of 0.
+
+```{r}
+# Using dplyr to keep data frame structure:
+training %>% 
+  mutate_at(vars(-Rings), scale) -> training
+
+testing %>% 
+  mutate_at(vars(-Rings), scale) -> testing
+```
+
+## GLM
+
+Linear models take the form:
+
+$$Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \ldots + \beta_p X_{ip} + \epsilon_i$$. The coefficients are:
+
+Since we are assuming normal distributions, `glm()` and `lm()` perform the same. The coefficients:
+
+```{r}
+fit_lm <- lm(Rings~.,data = training)
+```
+
+
+```{r echo = FALSE}
+data.frame(coef = round(fit_lm$coefficients,2)) %>% 
+  rownames_to_column() %>% 
+  rename(variable = rowname) %>% 
+  filter(variable != "(Intercept)") %>%  
+  arrange(coef) %>% 
+  mutate(variable = as_factor(variable)) %>% 
+  ggplot(aes(coef, variable)) +
+  geom_vline(xintercept = 0, col = "dark red", linetype = 2) +
+  geom_point() +
+  scale_x_continuous("r", limits = c(-5,5), expand = c(0,0))
+```
+
+
+
+```{r}
+#predict on test set
+pred_lm <- predict(fit_lm, newdata = testing)
+
+MAE_lm <- sum(abs(pred_lm - testing$Rings))/835
+```
+
+The MAE, using the linear model, is `r MAE_lm`.
+
+## Random Forest
+
+Let's give it another go using a random forest.
+
+```{r}
+fit_rf <- randomForest(Rings ~ ., data = training)
+
+pred_rf <- predict(fit_rf, testing)
+
+MAE_rf <- sum(abs(pred_rf - testing$Rings))/835
+
+```
+
+In this case the MAE is `r MAE_rf`.
+
+## Visualizing output
+
+Let's put this into context. The predictions for each model are compared to the actual data. The diagonal line is 1:1 equivalency.
+
+```{r echo = FALSE}
+data.frame(Actual = testing$Rings,
+           `GLM` = pred_lm,
+           `Random Forest` = pred_rf) %>% 
+  gather(Measure, Prediction, -Actual) %>% 
+  ggplot(aes(Actual, Prediction)) +
+  geom_point(shape = 16, alpha = 0.65) +
+  geom_abline(slope = 1, intercept = 0, col = "dark red") +
+  coord_fixed(xlim = c(0,30), ylim = c(0,30), expand = 0, clip = "off") +
+  facet_grid(. ~ Measure) +
+  theme_classic() +
+  theme(axis.text = element_text(colour = "black"),
+        strip.background = element_rect(colour = NA, fill = "gray92"))
+```
+
+```{r echo = FALSE}
+data.frame(Actual = testing$Rings,
+           `GLM` = pred_lm,
+           `Random Forest` = pred_rf) -> allResults
+
+cor(allResults) %>% 
+  knitr::kable()
+
+```

@@ -1,0 +1,182 @@
+---
+title: "Session 1 Exercise: Abaolone as Regression"
+subtitle: "k-fold cross validation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+
+# Initialize package
+library(keras)
+library(tidyverse)
+```
+
+Follow the instructions in the instruction file to complete this exercise. The solution can be found in the solutions directory -- no peeking!
+
+# Part 1: Data Preparation
+
+## Obtain data
+
+```{r data, warning = FALSE}
+
+train_data <- read_csv("data/Abalone_100/abalone_data.csv")
+train_targets <- read_csv("data/Abalone_100/abalone_labels_cont.csv")
+train_targets <- train_targets$Rings
+
+set.seed(136)
+index <- sample(1:nrow(train_data), 0.2*nrow(train_data))
+
+test_data <- train_data[index,]
+test_targets <- train_targets[index]
+
+train_data <- train_data[-index,]
+train_targets <- train_targets[-index]
+
+```
+
+## Examine data:
+
+Our predictor variables:
+
+```{r strDataPre}
+str(train_data)
+str(test_data)
+```
+
+The target, response variable:
+
+```{r strTargets}
+str(train_targets)
+```
+
+## Prepare the data:
+
+Convert z-scores:
+
+
+```{r zScores, cache = T}
+# parameters for Scaling:
+mean <- colMeans(train_data) # mean of each column
+std <- apply(train_data, 2, sd) # stdev of each column
+
+# Calculate feature-wise (within-variable) z-scores: (x - mean)/std
+train_data <- scale(train_data, center = mean, scale = std)
+test_data <- scale(test_data, center = mean, scale = std)
+```
+
+# Part 2: Define Network
+
+
+## Define the network as a function
+
+In contrast to our previous case studies, we're going to call the same model multiple times. So we'll create a function with no arguments that we can call to create our model when ever we want to use it for training. 
+
+Here, I've hardcoded the number of features for this dataset (`13`). To generalize, we could just use `dim(train_data)[2]` to get the number of dimensions from the training set.  
+
+```{r defModel}
+build_model <- function() {
+  network <- keras_model_sequential() %>% 
+    layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
+    layer_dense(units = 64, activation = "relu") %>% 
+    layer_dense(units = 1) 
+    
+  network %>% compile(
+    optimizer = "rmsprop", 
+    loss = "mse", 
+    metrics = c("mae")
+  )
+}
+```
+
+# Part 3: k-fold cross validation
+
+### Training for 100 epochs
+
+```{r setkFold, echo = TRUE, results = 'hide'}
+k <- 4 # four groups
+indices <- sample(1:nrow(train_data)) # randomize the training set before splitting for k-fold cross validation:
+folds <- cut(indices, breaks = k, labels = FALSE) # divide the ordered indices into k intervals, labelled 1:k.
+```
+
+Let's try training the network for a bit longer: 500 epochs. To keep a record of how well the model did at each epoch, we will modify our training loop to save the per-epoch validation score log:
+
+```{r clearMem}
+# Some memory clean-up
+K <- backend()
+K$clear_session()
+```
+
+Train our the models:
+
+```{r kfold500, echo = T, results = 'hide', cache = T}
+num_epochs <- 100
+all_mae_histories <- NULL # an empty object to cumulatively store the model metrics
+
+for (i in 1:k) {
+  cat("processing fold #", i, "\n")
+  
+  # Prepare the validation data: data from partition # k
+  val_indices <- which(folds == i, arr.ind = TRUE)
+  val_data <- train_data[val_indices,]
+  val_targets <- train_targets[val_indices]
+  
+  # Prepare the training data: data from all other partitions
+  partial_train_data <- train_data[-val_indices,]
+  partial_train_targets <- train_targets[-val_indices]
+  
+  # Build the Keras model (already compiled)
+  model <- build_model()
+  
+  # Train the model (in silent mode, verbose=0)
+  history <- model %>% fit(partial_train_data, 
+                           partial_train_targets,
+                           validation_data = list(val_data, val_targets),
+                           epochs = num_epochs, 
+                           batch_size = 1, 
+                           verbose = FALSE
+  )
+  mae_history <- history$metrics$val_mean_absolute_error
+  all_mae_histories <- rbind(all_mae_histories, mae_history)
+}
+```
+
+Calculate the average per-epoch MAE score for all folds:
+
+```{r plot1}
+average_mae_history <- data.frame(
+  epoch = seq(1:ncol(all_mae_histories)),
+  validation_mae = apply(all_mae_histories, 2, mean)
+)
+
+
+ggplot(average_mae_history, aes(x = epoch, y = validation_mae)) + 
+  geom_point() + 
+  geom_smooth(method = 'loess', se = FALSE)
+```
+
+According to this plot, it seems that validation MAE stops improving significantly after circa 80 epochs. Past that point, we start overfitting.
+
+Once we are done tuning other parameters of our model (besides the number of epochs, we could also adjust the size of the hidden layers), we can train a final "production" model on all of the training data, with the best parameters, then look at its performance on the test data:
+
+```{r runZ, echo = F, results = 'hide', cache = T}
+# Get a fresh, compiled model.
+model <- build_model()
+
+# Train it on the entirety of the data.
+model %>% fit(train_data, 
+              train_targets,
+              epochs = 80, 
+              batch_size = 1, 
+              verbose = FALSE)
+
+result <- model %>% evaluate(test_data, test_targets)
+
+MAE_dl_kfold <- result$mean_absolute_error
+```
+
+```{r resultsZ}
+result
+```
+
+The MAE when using k-fold cross-validation is `r MAE_dl_kfold`.

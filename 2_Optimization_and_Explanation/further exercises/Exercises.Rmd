@@ -1,0 +1,28 @@
+---
+title: "Session 2 Exercise: Instructions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(keras)
+```
+
+If you completed the exercises in the first session, you've evaluated the Abalone data set as either a:
+
+- Scalar Regression,
+- Binary Classificaiton, or
+- Single-label, Multi-class Classification
+
+problem. That was just setting up and running a network. Let's see if we can evaluate our models and improe on them.
+
+
+Here attempt to evaluate and improve on your results using some form of validation and a method to adjust for overfitting. Use one or more of the following methods:
+
+- Reduce capacity
+- Regularization
+- Dropout
+
+In the previous exercises you were only given 25% of the abalone data set. In the data directory you'll find from 10 to 100% of the data set. Now you can test the effects of increasing the dataset also.

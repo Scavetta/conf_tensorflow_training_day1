@@ -10,5 +10,6 @@ library(tidyverse)
 library(keras)
 ```
 
-In this directory you'll find files derived from the abalone data set available at UCI.
+The abalone data set is taken from the UCI and attempts to predict the number of Rings on the shell as a funciton of various other variables.
 
+Use the template files to try and perform a regression and classification on the data.

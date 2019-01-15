@@ -45,6 +45,7 @@
 | Markdown File                                | Description                                                |
 |:---------------------------------------------|:-----------------------------------------------------------|
 | 0_1_Classic_ML.Rmd                           | Some context from classical Machine Learning               |
+| 1_0_Boston_reg.R                             | Deep Learning for Regression, plain R script               |
 | 1_1_DL_Basics_Regression.Rmd                 | Deep Learning for Regression                               |
 | 1_2_DL_Basics_Binary_Classification.Rmd      | Deep Learning for Binary Classification                    |
 | 1_3_DL_Basics_Multi-class_Classification.Rmd | Deep Learning for Single-label, Multi-class Classification |
