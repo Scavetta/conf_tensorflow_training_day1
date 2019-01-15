@@ -76,9 +76,6 @@ test_data <- scale(test_data, center = mean, scale = std)
 
 ### Prepare labels:
 
-Here, we'll use _sparse categorical crossentropy_ which allows us to just use the original integer values.
-
-
 ```{r strLabelsPre}
 str(train_labels)
 sort(unique(train_labels))
@@ -123,10 +120,10 @@ data.frame(x  = test_labels) %>%
 ### Define the network
 
 ```{r architecture}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
-  layer_dense(units = 64, activation = "relu") %>% 
-  layer_dense(units = 4, activation = "softmax")
+network <- ______ %>% 
+  ______ %>% 
+  ______ %>% 
+  ______
 
 ```
 
@@ -137,37 +134,21 @@ summary(network)
 ### Compile
 
 ```{r compile}
-network %>% compile(
+network %>% ______(
   optimizer = "rmsprop",
-  loss = "sparse_categorical_crossentropy",
-  metrics = c("accuracy")
+  ______ = ______,
+  ______ = ______
 )
 ```
 
-## Part 3: Validate our approach
-
-Let's set apart 25% of the samples in our training data to use as a validation set:
-
-```{r}
-set.seed(631)
-index <- sample(1:nrow(train_data), 0.25*nrow(train_data))
-
-val_data <- train_data[index,]
-train_data <- train_data[-index,]
-
-val_labels <- train_labels[index]
-train_labels = train_labels[-index]
-```
-
-Now let's train our network for 20 epochs:
+## Train
 
 ```{r echo=TRUE, results = "hide", warning = FALSE}
-history <- network %>% fit(
-  train_data,
-  train_labels,
-  epochs = 20,
-  batch_size = 64,
-  validation_data = list(val_data, val_labels)
+history <- network %>% ______(
+  ______,
+  ______,
+  ______ = ______,
+  ______ = ______
 )
 ```
 
@@ -177,28 +158,6 @@ Let's display its loss and accuracy curves:
 plot(history)
 ```
 
-The network begins to overfit after nine epochs. Let's train a new network from scratch for nine epochs and then evaluate it on the test set.
-
-```{r, echo=TRUE, results='hide'}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 64, activation = "relu", input_shape = 8) %>% 
-  layer_dense(units = 64, activation = "relu") %>% 
-  layer_dense(units = 4, activation = "softmax")
-  
-network %>% compile(
-  optimizer = "rmsprop",
-  loss = "sparse_categorical_crossentropy",
-  metrics = c("accuracy")
-)
-
-history <- network %>% fit(
-  train_data,
-  train_labels,
-  epochs = 9,
-  batch_size = 64,
-  validation_data = list(val_data, val_labels)
-)
-```
 
 ## Part 4: Check output
 
@@ -207,24 +166,21 @@ Let's return to our original model using the vectorized data:
 $## Metrics
 
 ```{r metrics}
-metrics <- network %>% evaluate(test_data, test_labels)
+metrics <- network %>% ______(______, ______)
 ```
 
 ```{r}
 metrics
-metrics$acc
-# Error rate: incorrect calling
-1 - metrics$acc
 ```
 
 ##$ Predictions
 
 ```{r predictions}
-network %>% predict_classes(test_data[1:10,])
+network %>% ______(______)
 ```
 
 ```{r allPredictions}
-predictions <- network %>% predict_classes(test_data)
+predictions <- network %>% ______(______)
 actual <- unlist(test_labels)
 totalmisses <- sum(predictions != actual)
 ```

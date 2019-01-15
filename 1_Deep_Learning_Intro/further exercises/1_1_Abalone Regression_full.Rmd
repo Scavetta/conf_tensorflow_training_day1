@@ -222,10 +222,10 @@ str(test_labels_vec)
 ### Define a network
 
 ```{r}
-network <- keras_model_sequential() %>% 
-  layer_dense(units = 32, activation = "relu", input_shape = 8) %>% 
-  layer_dense(units = 32, activation = "relu") %>% 
-  layer_dense(units = 1) 
+network <- ______ %>% 
+  ______ %>% 
+  ______ %>% 
+  ______
 
 ```
 
@@ -235,10 +235,10 @@ network <- keras_model_sequential() %>%
 Here, the only thing we need to chance is the loss function. `categorical_crossentropy`, expects the labels to follow a categorical encoding, but `sparse_categorical_crossentropy` expects integer labels. 
 
 ```{r}
-network %>% compile(
+network %>% ______(
   optimizer = "rmsprop",
-  loss = "mse",
-  metrics = "mae"
+  ______ = ______,
+  ______ = ______
 )
 ```
 
@@ -247,11 +247,11 @@ network %>% compile(
 Now let's train our model `network_int` using the integer data, instead of the vectorized data:
 
 ```{r}
-history <- network %>% fit(
-  train_data,
-  train_labels,
-  epochs = 50,
-  batch_size = 64
+history <- network %>% ______(
+  ______,
+  ______,
+  ______ = ______,
+  ______ = ______
   )
 ```
 
@@ -265,13 +265,13 @@ plot(history)
 
 ```{r runZ_2}
 result <- network %>% 
-  evaluate(test_data, test_labels)
+  ______(______, ______)
 ```
 
 ### Results:
 
 ```{r runZ_3}
-MAE <- result$mean_absolute_error
+MAE <- result$______
 ```
 
 
@@ -287,8 +287,7 @@ To get the actual predictions we can use the `predict()` function:
 
 ```{r}
 network %>%
-  predict(test_data) %>% 
-  head()
+  ______(______)
 ```
 
 ```{r echo = FALSE}
