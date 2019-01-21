@@ -18,6 +18,10 @@
 
 - Hands-on, application of deep learning to solve problems in supervised machine learning (regression and classification using multivariate data, images and text).
 
+### Slides
+
+The slides shown during the presentation can be found [here](http://scavetta.academy/DLwR/Presentation/SCAVETTA%2C%20Rick%20--%20Intro%20to%20Deep%20Learning%20--%20RStudioConf2019.pdf).
+
 ## Structure
 
 ### Session I: Deep Learning Basics
