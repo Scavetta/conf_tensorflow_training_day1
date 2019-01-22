@@ -22,6 +22,22 @@
 
 The slides shown during the presentation can be found [here](http://scavetta.academy/DLwR/Presentation/SCAVETTA%2C%20Rick%20--%20Intro%20to%20Deep%20Learning%20--%20RStudioConf2019.pdf).
 
+### Data
+
+The data sets can be found online here:
+
+- [Dogs & Cats](https://www.kaggle.com/c/dogs-vs-cats)
+- [Malaria Cell Images](https://www.kaggle.com/iarunava/cell-images-for-detecting-malaria)
+- [Labradoodle versus Fried Chicken](https://github.com/yl3394/labradoodle-vs-friedchicken-imgclassification)
+
+I've also made them available on my server in the same format used in the exercises (train, validation and test folders):
+
+- [Malaria Cell Images](http://scavetta.academy/DLwR/data/cell_images.zip)
+- [Labradoodle versus Fried Chicken](http://scavetta.academy/DLwR/data/labradoodle_friedchicken.zip)
+- [Cats & dogs](http://scavetta.academy/DLwR/data/cats_and_dogs.zip)
+- [IMDB Reviews](http://scavetta.academy/DLwR/data/IMDB.zip)
+
+
 ## Structure
 
 ### Session I: Deep Learning Basics
